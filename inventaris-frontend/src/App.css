@@ -1,0 +1,310 @@
+/* Global Setup */
+:root {
+  --bg-dark-1: #1a1d24; /* Background paling gelap (body) */
+  --bg-dark-2: #252830; /* Background card & sidebar */
+  --bg-dark-3: #2c303a; /* Input forms */
+  --text-light-1: #f0f4f8; /* Teks utama */
+  --text-light-2: #a9b3c1; /* Teks subtitle/abu-abu */
+  --accent-blue: #00b8d4; /* Tombol/link aktif (cyan) */
+  --gradient-start: #6a11cb;
+  --gradient-end: #2575fc;
+}
+
+body {
+  font-family: "Poppins", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: var(--bg-dark-1);
+  color: var(--text-light-1);
+  margin: 0;
+}
+
+/* 1. Main Layout Wrapper */
+.app-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* 2. Sidebar */
+.sidebar {
+  width: 260px;
+  background-color: var(--bg-dark-2);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 30px;
+  /* (Ini 'Inventory' di screenshot kamu) */
+}
+
+.sidebar .nav-link {
+  color: var(--text-light-2);
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover {
+  background-color: var(--bg-dark-3);
+  color: white;
+}
+
+.sidebar .nav-link.active {
+  background-color: var(--accent-blue);
+  color: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 4px 12px -2px rgba(0, 184, 212, 0.3);
+}
+
+/* 3. Content Area */
+.content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 4. Header Atas (Gradient) */
+.main-header {
+  background: linear-gradient(
+    90deg,
+    var(--gradient-start) 0%,
+    var(--gradient-end) 100%
+  );
+  padding: 24px 40px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  /* (Ini 'Home' link di screenshot kamu) */
+}
+
+.main-header a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* 5. Konten Utama (Page) */
+.page-content {
+  padding: 40px;
+  flex-grow: 1;
+}
+
+/* 6. Card Konten (SANGAT PENTING) */
+/* Ini adalah 'wadah' yang akan dipakai semua halaman */
+.content-card {
+  background-color: var(--bg-dark-2);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.sub-card {
+  background-color: var(--bg-dark-1); /* Sedikit lebih gelap */
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid var(--bg-dark-3);
+}
+
+/* 7. Header di dalam Card (Judul + Tombol) */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.section-subtitle {
+  color: var(--text-light-2);
+  margin-top: 4px;
+}
+
+/* 8. Tombol (BTN) */
+/* Tombol biru/cyan utama */
+.btn-accent {
+  background-color: var(--accent-blue);
+  border: none;
+  color: white;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 10px 20px;
+  transition: all 0.2s ease;
+}
+.btn-accent:hover {
+  background-color: #00d9f7;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -2px rgba(0, 184, 212, 0.4);
+}
+
+/* Override Tombol Bootstrap lain */
+.btn-warning {
+  background-color: #ffc107;
+  border: none;
+}
+.btn-danger {
+  background-color: #dc3545;
+  border: none;
+}
+
+/* 9. Form (Input & Select) */
+.form-control,
+.form-select {
+  background-color: var(--bg-dark-3);
+  color: var(--text-light-1);
+  border: 1px solid var(--bg-dark-3);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--bg-dark-3);
+  color: var(--text-light-1);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(0, 184, 212, 0.3);
+}
+.form-control::placeholder {
+  color: var(--text-light-2);
+}
+.form-label {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+/* 10. Tabel */
+.table-soft {
+  color: var(--text-light-1);
+  border-color: var(--bg-dark-3);
+}
+.table-soft thead th {
+  color: var(--text-light-2);
+  font-weight: 600;
+  border: none;
+  border-bottom: 1px solid var(--bg-dark-3);
+  padding-bottom: 16px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+.table-soft tbody tr {
+  border: none;
+  transition: background-color 0.2s ease;
+}
+.table-soft tbody td {
+  border: none;
+  padding: 16px 8px;
+  vertical-align: middle;
+}
+.table-soft.table-hover tbody tr:hover {
+  background-color: var(--bg-dark-3);
+  color: white;
+}
+
+/* 11. Modal */
+.modal-content {
+  background-color: var(--bg-dark-2);
+  border-radius: 12px;
+  border: none;
+}
+.modal-header {
+  border-bottom: 1px solid var(--bg-dark-3);
+}
+.modal-header .btn-close {
+  filter: invert(1);
+}
+.modal-footer {
+  border-top: 1px solid var(--bg-dark-3);
+}
+
+/* ========================================= */
+/* ===== PATCH UNTUK MODAL DARK MODE ===== */
+/* ========================================= */
+
+/* 1. Memaksa Teks Label di Modal jadi Terang */
+.modal-body .form-label {
+  color: var(--text-light-1); /* Pakai warna teks terang */
+}
+
+/* 2. Memaksa Teks Placeholder di Modal jadi Terang */
+.modal-body .form-control::placeholder {
+  color: var(--text-light-2); /* Pakai warna teks abu-abu */
+}
+
+/* 3. Memaksa Teks Dropdown di Modal jadi Terang */
+.modal-body .form-select {
+  color: var(--text-light-1);
+}
+
+/* 4. (Opsional) Bikin tombol Batal lebih jelas */
+.modal-footer .btn-secondary {
+  background-color: var(--bg-dark-3);
+  border: none;
+  color: var(--text-light-2);
+}
+.modal-footer .btn-secondary:hover {
+  background-color: #4a4e5a;
+  color: white;
+}
+
+/* 5. MEMAKSA JUDUL MODAL JADI TERANG (BARU) */
+.modal-title {
+  color: var(--text-light-1); /* Pakai warna teks terang */
+}
+
+/* ========================================= */
+/* ===== 10. Tabel (VERSI PERBAIKAN) ===== */
+/* ========================================= */
+
+.table-soft {
+  color: var(--text-light-1) !important; /* Paksa warna teks */
+  border-color: var(--bg-dark-3);
+}
+
+.table-soft thead th {
+  color: var(--text-light-2);
+  font-weight: 600;
+  border: none;
+  border-bottom: 1px solid var(--bg-dark-3);
+  padding-bottom: 16px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.table-soft tbody tr {
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+/* INI TAMBAHAN PENTING */
+.table-soft th,
+.table-soft td {
+  /* Hapus background putih default bootstrap */
+  background-color: transparent !important;
+  color: var(--text-light-1) !important; /* Paksa warna teks */
+  border: none;
+  padding: 16px 8px;
+  vertical-align: middle;
+}
+/* -------------------- */
+
+.table-soft.table-hover tbody tr:hover {
+  background-color: var(--bg-dark-3) !important; /* Paksa hover */
+  color: white !important;
+}
+
+/* Ini untuk text-center di tabel kosong */
+.table-soft .text-center {
+  color: var(--text-light-2) !important;
+}

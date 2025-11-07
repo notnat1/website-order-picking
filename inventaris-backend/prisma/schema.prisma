@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+// TABEL BARU #1: Untuk mencatat pesanan
+model Order {
+  id          Int       @id @default(autoincrement())
+  nomor_pesanan String    @unique // Misal: "SO-1001"
+  nama_pemesan  String    // Siapa yang pesan
+  status      String    @default("Pending") // Pending, Picking, Picked
+  createdAt   DateTime  @default(now())
+  
+  // Relasi: Satu Order punya BANYAK detail barang
+  orderItems  OrderDetail[]
+}
+
+// TABEL BARU #2: Untuk mencatat barang apa saja di dalam 1 pesanan
+model OrderDetail {
+  id        Int   @id @default(autoincrement())
+  jumlah    Int
+  
+  // Relasi ke Order
+  order_id  Int
+  order     Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  
+  // Relasi ke Item
+  item_id   Int
+  item      Item  @relation(fields: [item_id], references: [id])
+}
+
+// Ini adalah file: prisma/schema.prisma
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  username  String   @unique
+  password  String
+  level     String   @default("manajemen") // "admin" or "manajemen"
+}
+
+model Supplier {
+  id            Int      @id @default(autoincrement())
+  nama_supplier String   @unique
+  alamat        String?
+  telepon       String?
+
+  status        String   @default("Aktif")
+
+  // Relasi: Satu supplier bisa memasok banyak barang masuk
+  barangMasuk   BarangMasuk[]
+}
+
+model Item { // Ini adalah Data Barang
+  id          Int      @id @default(autoincrement())
+  nama_barang String
+  spesifikasi String?
+  lokasi      String?
+  kondisi     String
+  jumlah_stok Int      @default(0)
+  sumber_dana String?
+
+  status  String  @default("Aktif") // <-- TAMBAHKAN BARIS INI
+
+  // Relasi
+  barangMasuk   BarangMasuk[]
+  barangKeluar  BarangKeluar[]
+  orderDetails OrderDetail[]
+}
+
+model BarangMasuk {
+  id            Int      @id @default(autoincrement())
+  tanggal_masuk DateTime @default(now())
+  jumlah        Int
+
+  // Kunci relasi ke Item
+  item_id       Int
+  item          Item     @relation(fields: [item_id], references: [id])
+
+  // Kunci relasi ke Supplier
+  supplier_id   Int
+  supplier      Supplier @relation(fields: [supplier_id], references: [id])
+}
+
+model BarangKeluar { // Ini adalah Peminjaman
+  id              Int       @id @default(autoincrement())
+  tanggal_keluar  DateTime  @default(now())
+  jumlah          Int
+  penerima        String    // Siapa yang pinjam/ambil
+
+  // Kunci relasi ke Item
+  item_id         Int
+  item            Item      @relation(fields: [item_id], references: [id])
+}

@@ -1,0 +1,129 @@
+// Lokasi file: src/controllers/orderController.js
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+// 1. FUNGSI UNTUK MEMBUAT PESANAN BARU
+exports.createOrder = async (req, res) => {
+  const { nama_pemesan, items } = req.body;
+  if (!nama_pemesan || !items || items.length === 0) {
+    return res.status(400).json({ error: "Nama pemesan dan daftar barang tidak boleh kosong." });
+  }
+  const nomor_pesanan = `SO-${Date.now()}`;
+  try {
+    const newOrder = await prisma.order.create({
+      data: {
+        nama_pemesan,
+        nomor_pesanan,
+        status: "Pending",
+        orderItems: {
+          create: items.map(item => ({
+            item_id: parseInt(item.item_id),
+            jumlah: parseInt(item.jumlah)
+          }))
+        }
+      },
+      include: { orderItems: true }
+    });
+    res.status(201).json(newOrder);
+  } catch (error) {
+    console.error("--- GAGAL MEMBUAT ORDER BARU ---", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 2. FUNGSI UNTUK MELIHAT SEMUA TUGAS PICKING (Order 'Pending')
+exports.getPendingOrders = async (req, res) => {
+  try {
+    const orders = await prisma.order.findMany({
+      where: { status: "Pending" },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        _count: {
+          select: { orderItems: true }
+        }
+      }
+    });
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("--- GAGAL MENGAMBIL ORDER PENDING ---", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 3. FUNGSI UNTUK MELIHAT DETAIL SATU TUGAS PICKING
+exports.getOrderDetail = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        orderItems: {
+          include: {
+            item: true
+          }
+        }
+      }
+    });
+    if (!order) {
+      return res.status(404).json({ error: "Order tidak ditemukan." });
+    }
+    res.status(200).json(order);
+  } catch (error) {
+    console.error(`--- GAGAL MENGAMBIL DETAIL ORDER ${id} ---`, error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// 4. FUNGSI "JANTUNG" (Selesaikan Picking & Kurangi Stok)
+exports.completeOrderPicking = async (req, res) => {
+  const { id } = req.params;
+  const orderId = parseInt(id);
+  try {
+    const orderToPick = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { orderItems: { include: { item: true } } }
+    });
+    if (!orderToPick) {
+      return res.status(404).json({ error: "Order tidak ditemukan." });
+    }
+    if (orderToPick.status !== "Pending") {
+      return res.status(400).json({ error: "Order ini sudah diproses." });
+    }
+    for (const detail of orderToPick.orderItems) {
+      if (detail.item.jumlah_stok < detail.jumlah) {
+        return res.status(400).json({ 
+          error: `Stok tidak cukup untuk ${detail.item.nama_barang}. Sisa stok: ${detail.item.jumlah_stok}, diminta: ${detail.jumlah}`
+        });
+      }
+    }
+    const transactionQueries = [];
+    for (const detail of orderToPick.orderItems) {
+      transactionQueries.push(
+        prisma.item.update({
+          where: { id: detail.item_id },
+          data: { jumlah_stok: { decrement: detail.jumlah } }
+        })
+      );
+    }
+    transactionQueries.push(
+      prisma.order.update({
+        where: { id: orderId },
+        data: { status: "Picked" }
+      })
+    );
+    await prisma.$transaction(transactionQueries);
+    res.status(200).json({ message: "Order picking selesai dan stok telah diupdate." });
+  } catch (error) {
+    console.error(`--- GAGAL MENYELESAIKAN PICKING (ORDER ID: ${orderId}) ---`, error);
+    res.status(500).json({ error: `Gagal memproses order: ${error.message}` });
+  }
+};
+
+// Pastikan ekspornya benar (ini yang suka bikin error '... is not a function')
+module.exports = {
+  createOrder: exports.createOrder,
+  getPendingOrders: exports.getPendingOrders,
+  getOrderDetail: exports.getOrderDetail,
+  completeOrderPicking: exports.completeOrderPicking
+};
