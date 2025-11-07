@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from 'axios'; // <-- Tetap impor axios
 import { Table, Button, Alert } from 'react-bootstrap';
 import AddBarangModal from '../components/AddBarangModal';
 import EditBarangModal from '../components/EditBarangModal';
@@ -16,11 +16,18 @@ const BarangPage = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5001/api/items');
+      
+      // LAMA: const response = await axios.get('http://localhost:5001/api/items');
+      // BARU: (baseURL dan Token sudah di-handle oleh AuthContext)
+      const response = await axios.get('/items'); // <-- DIUBAH
+      
       setItems(response.data);
       setError(null);
     } catch (err) {
-      setError('Terjadi kesalahan saat mengambil data barang.');
+      // Jika token expired atau tidak valid (401 Unauthorized), AuthContext
+      // idealnya akan me-redirect ke login. Tapi kita juga bisa tangani error di sini.
+      const message = err.response?.data?.error || 'Terjadi kesalahan saat mengambil data barang.';
+      setError(message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -46,22 +53,30 @@ const BarangPage = () => {
 
   const handleSaveBarang = async (newItem) => {
     try {
-      await axios.post('http://localhost:5001/api/items', newItem);
+      // LAMA: await axios.post('http://localhost:5001/api/items', newItem);
+      // BARU:
+      await axios.post('/items', newItem); // <-- DIUBAH
+      
       handleCloseAddModal();
       fetchItems(); // Refresh data
     } catch (err) {
-      setError('Gagal menyimpan data barang baru.');
+      const message = err.response?.data?.error || 'Gagal menyimpan data barang baru.';
+      setError(message);
       console.error(err);
     }
   };
 
   const handleUpdateBarang = async (updatedItem) => {
     try {
-      await axios.put(`http://localhost:5001/api/items/${updatedItem.id}`, updatedItem);
+      // LAMA: await axios.put(`http://localhost:5001/api/items/${updatedItem.id}`, updatedItem);
+      // BARU:
+      await axios.put(`/items/${updatedItem.id}`, updatedItem); // <-- DIUBAH
+      
       handleCloseEditModal();
       fetchItems(); // Refresh data
     } catch (err) {
-      setError('Gagal memperbarui data barang.');
+      const message = err.response?.data?.error || 'Gagal memperbarui data barang.';
+      setError(message);
       console.error(err);
     }
   };
@@ -69,10 +84,14 @@ const BarangPage = () => {
   const handleDeleteBarang = async (itemId) => {
     if (window.confirm('Apakah Anda yakin ingin menonaktifkan barang ini?')) {
       try {
-        await axios.delete(`http://localhost:5001/api/items/${itemId}`);
+        // LAMA: await axios.delete(`http://localhost:5001/api/items/${itemId}`);
+        // BARU:
+        await axios.delete(`/items/${itemId}`); // <-- DIUBAH
+        
         fetchItems(); // Refresh data
       } catch (err) {
-        setError('Gagal menonaktifkan data barang.');
+        const message = err.response?.data?.error || 'Gagal menonaktifkan data barang.';
+        setError(message);
         console.error(err);
       }
     }
@@ -80,29 +99,24 @@ const BarangPage = () => {
   // --- AKHIR DARI LOGIKA LAMA ---
 
 
-  // --- INI BAGIAN JSX YANG DIROMBAK ---
+  // --- BAGIAN JSX (TIDAK ADA PERUBAHAN) ---
   return (
-    // 1. Ganti <Container> dengan <div className="content-card">
     <div className="content-card"> 
       
-      {/* 2. Gunakan "section-header" standar */}
       <div className="section-header">
         <div>
           <h2 className="section-title">Data Barang</h2>
           <p className="section-subtitle">Daftar semua barang aktif di gudang.</p>
         </div>
-        {/* 3. Gunakan "btn-accent" */}
         <Button className="btn-accent" onClick={handleShowAddModal}>
           + Tambah Barang
         </Button>
       </div>
       
       {loading && <p>Loading...</p>}
-      {/* 4. Buat Alert bisa ditutup */}
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
       
       {!loading && !error && (
-        // 5. Gunakan "table-soft"
         <Table responsive hover className="table-soft">
           <thead>
             <tr>
@@ -119,7 +133,6 @@ const BarangPage = () => {
               items.map((item, index) => (
                 <tr key={item.id}>
                   <td>{index + 1}</td>
-                  {/* 6. Pastikan key sudah benar */}
                   <td>{item.nama_barang}</td>
                   <td>{item.kondisi}</td>
                   <td>{item.lokasi}</td>
@@ -139,7 +152,6 @@ const BarangPage = () => {
         </Table>
       )}
 
-      {/* 7. Modal tetap di luar tabel */}
       <AddBarangModal 
         show={showAddModal}
         handleClose={handleCloseAddModal}
