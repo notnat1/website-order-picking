@@ -10,7 +10,7 @@ const ItemList = () => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/items');
+        const response = await axios.get('http://localhost:5001/api/items');
         setItems(response.data);
       } catch (err) {
         setError(err.message);
