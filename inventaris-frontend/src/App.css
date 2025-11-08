@@ -407,3 +407,59 @@ body {
     border-bottom-right-radius: 15px;
   }
 }
+
+/* 12. KUSTOMISASI LOGIN PAGE BARU (FLOATING LABEL) */
+.login-panel .form-floating {
+  /* Mengatur agar Form.Floating bisa menampung ikon */
+  position: relative;
+}
+
+.login-panel .form-floating label {
+  /* Warna label saat diam (placeholder) */
+  color: var(--text-light-2);
+}
+
+.login-panel .form-floating > .form-control {
+  background-color: var(--bg-dark-3);
+  color: var(--text-light-1);
+  border: 1px solid var(--bg-dark-3);
+  border-bottom: 2px solid var(--text-light-2);
+  height: 58px;
+  padding-top: 1.6rem;
+  /* Beri jarak di kanan agar teks tidak mentok ikon */
+  padding-right: 40px;
+}
+
+/* Saat input di-klik (focus) atau sudah diisi (not(:placeholder-shown)) */
+.login-panel .form-floating > .form-control:focus,
+.login-panel .form-floating > .form-control:not(:placeholder-shown) {
+  background-color: var(--bg-dark-3);
+  color: var(--text-light-1);
+  border-bottom: 2px solid var(--accent-blue); /* Garis bawah jadi biru */
+  box-shadow: none; /* Hapus bayangan default bootstrap */
+}
+
+/* Style untuk label saat "naik" */
+.login-panel .form-floating > .form-control:focus ~ label,
+.login-panel .form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--accent-blue); /* Warna label jadi biru */
+  opacity: 1;
+  /* Ini adalah trik agar labelnya pas di atas */
+  transform: scale(0.85) translateY(-0.7rem) translateX(0.15rem);
+}
+
+/* Style untuk ikon mata (show/hide password) */
+.password-toggle-icon {
+  position: absolute;
+  top: 50%; /* Posisikan di tengah vertikal */
+  transform: translateY(-50%); /* Trik centering */
+  right: 30px; /* Jarak 15px dari tepi kanan container */
+  color: var(--text-light-2);
+  cursor: pointer;
+  z-index: 10; /* Pastikan di atas input */
+  font-size: 1.2rem;
+}
+
+.password-toggle-icon:hover {
+  color: var(--accent-blue); /* Warna saat di-hover */
+}

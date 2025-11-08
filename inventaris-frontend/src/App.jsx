@@ -13,6 +13,7 @@ import BuatPesananPage from './pages/BuatPesananPage';
 import TugasPickingPage from './pages/TugasPickingPage'; // <-- Impor asli
 import PickingDetailPage from './pages/PickingDetailPage'; // <-- Impor detail
 import LoginPage from './pages/LoginPage';
+import ManajemenUserPage from './pages/ManajemenUserPage'; // <-- 1. PERUBAHAN DI SINI
 
 function App() {
   return (
@@ -47,6 +48,9 @@ function App() {
         
         <Route path="tugas-picking" element={<TugasPickingPage />} />
         <Route path="tugas-picking/:id" element={<PickingDetailPage />} />
+
+        {/* 2. PERUBAHAN DI SINI */}
+        <Route path="manajemen-user" element={<ManajemenUserPage />} />
 
         {/* Rute "Not Found" di dalam aplikasi */}
         <Route path="*" element={

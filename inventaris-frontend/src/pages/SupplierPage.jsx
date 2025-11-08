@@ -1,25 +1,21 @@
-// Lokasi file: src/pages/SupplierPage.jsx
-// (VERSI ROMBAK TOTAL)
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Alert } from 'react-bootstrap'; // Hapus Container
+import { Table, Button, Alert } from 'react-bootstrap';
 import AddSupplierModal from '../components/modals/AddSupplierModal';
 import EditSupplierModal from '../components/modals/EditSupplierModal';
 
 const SupplierPage = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // Ini error halaman
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
-  // --- SEMUA LOGIKA LAMA KAMU (AMAN) ---
   const fetchSuppliers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5001/api/suppliers');
+      const response = await axios.get('/suppliers'); // Path sudah benar
       setSuppliers(response.data);
       setError(null);
     } catch (err) {
@@ -47,32 +43,34 @@ const SupplierPage = () => {
     setShowEditModal(true);
   };
 
+  // --- PERBAIKAN DI SINI ---
   const handleSaveSupplier = async (newSupplier) => {
     try {
-      await axios.post('http://localhost:5001/api/suppliers', newSupplier);
-      fetchSuppliers(); // Refresh data
+      await axios.post('/suppliers', newSupplier);
+      fetchSuppliers();
       handleCloseAddModal();
     } catch (err) {
-      setError('Gagal menyimpan supplier baru.');
-      console.error("Gagal menyimpan supplier:", err);
+      // Lempar error agar bisa ditangkap oleh Modal
+      throw new Error(err.response?.data?.error || 'Gagal menyimpan supplier baru.');
     }
   };
 
+  // --- PERBAIKAN DI SINI ---
   const handleUpdateSupplier = async (updatedSupplier) => {
     try {
-      await axios.put(`http://localhost:5001/api/suppliers/${updatedSupplier.id}`, updatedSupplier);
+      await axios.put(`/suppliers/${updatedSupplier.id}`, updatedSupplier);
       fetchSuppliers();
       handleCloseEditModal();
     } catch (err) {
-      setError('Gagal mengupdate supplier.');
-      console.error("Gagal mengupdate supplier:", err);
+      // Lempar error agar bisa ditangkap oleh Modal
+      throw new Error(err.response?.data?.error || 'Gagal mengupdate supplier.');
     }
   };
 
   const handleDeleteSupplier = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menonaktifkan supplier ini?')) {
       try {
-        await axios.delete(`http://localhost:5001/api/suppliers/${id}`);
+        await axios.delete(`/suppliers/${id}`);
         fetchSuppliers();
       } catch (err) {
         setError('Gagal menonaktifkan supplier.');
@@ -80,31 +78,26 @@ const SupplierPage = () => {
       }
     }
   };
-  // --- AKHIR DARI LOGIKA LAMA ---
+  // --- AKHIR PERBAIKAN ---
 
-  // --- INI BAGIAN JSX YANG DIROMBAK ---
+  // ... (JSX return tidak berubah)
   return (
-    // 1. Ganti <Container> dengan <div className="content-card">
     <div className="content-card">
       
-      {/* 2. Gunakan "section-header" standar */}
       <div className="section-header">
         <div>
           <div className="section-title">Data Supplier</div>
           <div className="section-subtitle">Daftar mitra penyedia barang</div>
         </div>
-        {/* 3. Gunakan "btn-accent" */}
         <Button className="btn-accent" onClick={handleShowAddModal}>
           + Tambah Supplier
         </Button>
       </div>
       
       {loading && <p>Loading...</p>}
-      {/* 4. Buat Alert bisa ditutup */}
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
       
       {!loading && !error && (
-        // 5. Gunakan "table-soft"
         <Table responsive hover className="table-soft">
           <thead>
             <tr>
@@ -120,7 +113,6 @@ const SupplierPage = () => {
               suppliers.map((supplier, index) => (
                 <tr key={supplier.id}>
                   <td>{index + 1}</td>
-                  {/* 6. Pastikan key sudah benar */}
                   <td>{supplier.nama_supplier}</td>
                   <td>{supplier.alamat}</td>
                   <td>{supplier.telepon}</td>

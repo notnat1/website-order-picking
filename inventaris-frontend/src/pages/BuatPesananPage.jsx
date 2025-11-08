@@ -65,7 +65,7 @@ const BuatPesananPage = () => {
     }
     setSelectedItemId('');
     setSelectedItemJumlah(1);
-T };
+ };
 
   const handleRemoveFromCart = (item_id) => {
     setCart(cart.filter(item => item.item_id !== item_id));

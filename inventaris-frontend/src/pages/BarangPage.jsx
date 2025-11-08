@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // <-- Tetap impor axios
+import axios from 'axios';
 import { Table, Button, Alert } from 'react-bootstrap';
 import AddBarangModal from '../components/AddBarangModal';
 import EditBarangModal from '../components/EditBarangModal';
@@ -7,27 +7,19 @@ import EditBarangModal from '../components/EditBarangModal';
 const BarangPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // Ini untuk error Halaman
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // --- SEMUA LOGIKA LAMA KAMU (AMAN) ---
   const fetchItems = async () => {
     try {
       setLoading(true);
-      
-      // LAMA: const response = await axios.get('http://localhost:5001/api/items');
-      // BARU: (baseURL dan Token sudah di-handle oleh AuthContext)
-      const response = await axios.get('/items'); // <-- DIUBAH
-      
+      const response = await axios.get('/items');
       setItems(response.data);
       setError(null);
     } catch (err) {
-      // Jika token expired atau tidak valid (401 Unauthorized), AuthContext
-      // idealnya akan me-redirect ke login. Tapi kita juga bisa tangani error di sini.
-      const message = err.response?.data?.error || 'Terjadi kesalahan saat mengambil data barang.';
-      setError(message);
+      setError('Terjadi kesalahan saat mengambil data barang.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -51,55 +43,44 @@ const BarangPage = () => {
     setShowEditModal(true);
   };
 
+  // --- PERBAIKAN DI SINI ---
   const handleSaveBarang = async (newItem) => {
     try {
-      // LAMA: await axios.post('http://localhost:5001/api/items', newItem);
-      // BARU:
-      await axios.post('/items', newItem); // <-- DIUBAH
-      
+      await axios.post('/items', newItem);
       handleCloseAddModal();
       fetchItems(); // Refresh data
     } catch (err) {
-      const message = err.response?.data?.error || 'Gagal menyimpan data barang baru.';
-      setError(message);
-      console.error(err);
+      // Lempar error agar bisa ditangkap oleh Modal
+      throw new Error(err.response?.data?.error || 'Gagal menyimpan data barang baru.');
     }
   };
 
+  // --- PERBAIKAN DI SINI ---
   const handleUpdateBarang = async (updatedItem) => {
     try {
-      // LAMA: await axios.put(`http://localhost:5001/api/items/${updatedItem.id}`, updatedItem);
-      // BARU:
-      await axios.put(`/items/${updatedItem.id}`, updatedItem); // <-- DIUBAH
-      
+      await axios.put(`/items/${updatedItem.id}`, updatedItem);
       handleCloseEditModal();
       fetchItems(); // Refresh data
     } catch (err) {
-      const message = err.response?.data?.error || 'Gagal memperbarui data barang.';
-      setError(message);
-      console.error(err);
+      // Lempar error agar bisa ditangkap oleh Modal
+      throw new Error(err.response?.data?.error || 'Gagal memperbarui data barang.');
     }
   };
 
   const handleDeleteBarang = async (itemId) => {
     if (window.confirm('Apakah Anda yakin ingin menonaktifkan barang ini?')) {
       try {
-        // LAMA: await axios.delete(`http://localhost:5001/api/items/${itemId}`);
-        // BARU:
-        await axios.delete(`/items/${itemId}`); // <-- DIUBAH
-        
+        await axios.delete(`/items/${itemId}`);
         fetchItems(); // Refresh data
       } catch (err) {
-        const message = err.response?.data?.error || 'Gagal menonaktifkan data barang.';
-        setError(message);
+        setError('Gagal menonaktifkan data barang.');
         console.error(err);
       }
     }
   };
-  // --- AKHIR DARI LOGIKA LAMA ---
+  // --- AKHIR PERBAIKAN ---
 
-
-  // --- BAGIAN JSX (TIDAK ADA PERUBAHAN) ---
+  // ... (JSX return tidak berubah)
   return (
     <div className="content-card"> 
       
@@ -118,6 +99,7 @@ const BarangPage = () => {
       
       {!loading && !error && (
         <Table responsive hover className="table-soft">
+          {/* ... isi tabel ... */}
           <thead>
             <tr>
               <th>No</th>

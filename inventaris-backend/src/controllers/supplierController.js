@@ -1,5 +1,5 @@
 // Lokasi file: src/controllers/supplierController.js
-// (VERSI FINAL - SUDAH DIPERBAIKI TOTAL)
+// (VERSI FINAL - DITAMBAH VALIDASI)
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const getAllSuppliers = async (req, res) => {
   try {
     const suppliers = await prisma.supplier.findMany({
-      where: { status: "Aktif" } // <-- DIUBAH
+      where: { status: "Aktif" } 
     });
     res.json(suppliers);
   } catch (error) {
@@ -35,6 +35,21 @@ const getSupplierById = async (req, res) => {
 // Create new supplier
 exports.createSupplier = async (req, res) => {
   const { nama_supplier, alamat, telepon } = req.body; 
+
+  // --- VALIDASI BACKEND (PERBAIKAN) ---
+  if (!nama_supplier || nama_supplier.trim() === '') {
+    return res.status(400).json({ error: "Nama Supplier wajib diisi." });
+  }
+  
+  // Regex: 
+  // ^[0-9]*$ = Memeriksa apakah string HANYA berisi angka (0-9)
+  //            Atau string kosong (jika telepon tidak diisi)
+  const phoneRegex = /^[0-9]*$/;
+  if (telepon && !phoneRegex.test(telepon)) {
+    return res.status(400).json({ error: "Nomor telepon hanya boleh berisi angka." });
+  }
+  // --- AKHIR VALIDASI ---
+
   try {
     const newSupplier = await prisma.supplier.create({
       data: {
@@ -56,6 +71,17 @@ exports.createSupplier = async (req, res) => {
 exports.updateSupplier = async (req, res) => {
   const { id } = req.params;
   const { nama_supplier, alamat, telepon } = req.body;
+
+  // --- VALIDASI BACKEND (PERBAIKAN) ---
+  if (!nama_supplier || nama_supplier.trim() === '') {
+    return res.status(400).json({ error: "Nama Supplier wajib diisi." });
+  }
+  const phoneRegex = /^[0-9]*$/; 
+  if (telepon && !phoneRegex.test(telepon)) {
+    return res.status(400).json({ error: "Nomor telepon hanya boleh berisi angka." });
+  }
+  // --- AKHIR VALIDASI ---
+
   try {
     const updatedSupplier = await prisma.supplier.update({
       where: { id: parseInt(id) },
@@ -78,14 +104,13 @@ exports.updateSupplier = async (req, res) => {
 exports.deleteSupplier = async (req, res) => {
   const { id } = req.params;
   try {
-    // UBAH DARI 'delete' MENJADI 'update'
     await prisma.supplier.update({ 
       where: { id: parseInt(id) },
-      data: { status: "Non-Aktif" } // <-- UBAH STATUSNYA
+      data: { status: "Non-Aktif" } 
     });
     res.status(200).json({ message: "Supplier berhasil dinonaktifkan" });
   } catch (error) {
-    console.error(`--- GAGAL MENONAKTIFKAN SUPPLIER (ID: ${id}) ---`, error); // <-- DIUBAH
+    console.error(`--- GAGAL MENONAKTIFKAN SUPPLIER (ID: ${id}) ---`, error); 
     res.status(500).json({ error: `Failed to delete supplier: ${error.message}` });
   }
 };

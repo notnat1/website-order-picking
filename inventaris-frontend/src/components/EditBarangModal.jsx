@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Alert } from 'react-bootstrap'; // <-- Tambah Alert
 
 const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
-  // --- State untuk SEMUA field form ---
   const [nama_barang, setNamaBarang] = useState('');
   const [jumlah_stok, setJumlahStok] = useState('');
   const [kondisi, setKondisi] = useState('');
@@ -10,36 +9,66 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
   const [lokasi, setLokasi] = useState('');
   const [sumber_dana, setSumberDana] = useState('');
 
-  // --- useEffect ini PENTING ---
-  // Ini akan mengisi form dengan data item yang diklik
-  // setiap kali modal dibuka (atau 'item' berubah)
+  // --- PERBAIKAN DI SINI ---
+  const [isSaving, setIsSaving] = useState(false);
+  const [modalError, setModalError] = useState(null);
+  
+  // useEffect ini PENTING untuk mengisi form
   useEffect(() => {
     if (item) {
       setNamaBarang(item.nama_barang);
       setJumlahStok(item.jumlah_stok);
       setKondisi(item.kondisi);
-      setSpesifikasi(item.spesifikasi || ''); // || '' untuk jaga-jaga jika datanya null
+      setSpesifikasi(item.spesifikasi || '');
       setLokasi(item.lokasi || '');
       setSumberDana(item.sumber_dana || '');
     }
-  }, [item]); // "Pantau" prop 'item'
+    
+    // Saat modal berganti item (atau ditutup lalu dibuka), reset error
+    if (show) {
+        setModalError(null);
+        setIsSaving(false);
+    }
+  }, [item, show]); // "Pantau" prop 'item' dan 'show'
 
-  const onSave = () => {
-    if (!nama_barang || !jumlah_stok || !kondisi) {
-      alert('Nama Barang, Stok, dan Kondisi tidak boleh kosong.');
+  const onSave = async () => { // <-- Buat jadi async
+    // Validasi Frontend dulu
+    if (!nama_barang || jumlah_stok === '' || !kondisi) {
+      setModalError('Nama Barang, Stok, dan Kondisi tidak boleh kosong.');
       return;
     }
 
-    // Kirim object yang LENGKAP ke backend
-    handleSave({
-      id: item.id, // <-- PENTING: Sertakan ID untuk update
-      nama_barang: nama_barang,
-      jumlah_stok: parseInt(jumlah_stok, 10),
-      kondisi: kondisi,
-      spesifikasi: spesifikasi,
-      lokasi: lokasi,
-      sumber_dana: sumber_dana
-    });
+    const stokInt = parseInt(jumlah_stok, 10);
+    if (stokInt < 0) {
+      setModalError('Jumlah stok tidak boleh negatif.');
+      return;
+    }
+    
+    setIsSaving(true);
+    setModalError(null);
+
+    try {
+      // Kirim object
+      await handleSave({
+        id: item.id, // <-- PENTING: Sertakan ID untuk update
+        nama_barang: nama_barang,
+        jumlah_stok: stokInt,
+        kondisi: kondisi,
+        spesifikasi: spesifikasi,
+        lokasi: lokasi,
+        sumber_dana: sumber_dana
+      });
+      
+      // Jika handleSave SUKSES, Parent (BarangPage) akan menutup modal.
+      
+    } catch (error) {
+      // Jika handleSave GAGAL (throw error), tangkap di sini
+      setModalError(error.message);
+      // JANGAN RESET FORM
+    } finally {
+      setIsSaving(false);
+    }
+    // --- AKHIR PERBAIKAN ---
   };
 
   return (
@@ -48,8 +77,12 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
         <Modal.Title>Edit Barang</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+
+        {/* Tampilkan error di DALAM modal */}
+        {modalError && <Alert variant="danger">{modalError}</Alert>}
+
         <Form>
-          {/* Form ini SAMA PERSIS dengan AddBarangModal */}
+          {/* ... (Semua Form.Group SAMA PERSIS dengan AddBarangModal) ... */}
           <Form.Group className="mb-3" controlId="editBarangName">
             <Form.Label>Nama Barang <span className="text-danger">*</span></Form.Label>
             <Form.Control 
@@ -57,9 +90,9 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               placeholder="Masukkan nama barang" 
               value={nama_barang}
               onChange={(e) => setNamaBarang(e.target.value)}
+              required
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="editBarangStock">
             <Form.Label>Stok <span className="text-danger">*</span></Form.Label>
             <Form.Control 
@@ -67,9 +100,10 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               placeholder="Masukkan jumlah stok" 
               value={jumlah_stok}
               onChange={(e) => setJumlahStok(e.target.value)}
+              min="0" // <-- Ini juga penting
+              required
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="editBarangKondisi">
             <Form.Label>Kondisi <span className="text-danger">*</span></Form.Label>
             <Form.Control 
@@ -77,9 +111,9 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               placeholder="Contoh: Baru, Bekas, Rusak Ringan" 
               value={kondisi}
               onChange={(e) => setKondisi(e.target.value)}
+              required
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="editBarangSpesifikasi">
             <Form.Label>Spesifikasi</Form.Label>
             <Form.Control 
@@ -89,7 +123,6 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               onChange={(e) => setSpesifikasi(e.target.value)}
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="editBarangLokasi">
             <Form.Label>Lokasi</Form.Label>
             <Form.Control 
@@ -99,7 +132,6 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               onChange={(e) => setLokasi(e.target.value)}
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="editBarangSumberDana">
             <Form.Label>Sumber Dana</Form.Label>
             <Form.Control 
@@ -115,8 +147,8 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
         <Button variant="secondary" onClick={handleClose}>
           Batal
         </Button>
-        <Button variant="primary" onClick={onSave}>
-          Simpan Perubahan
+        <Button variant="primary" onClick={onSave} disabled={isSaving}>
+          {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
         </Button>
       </Modal.Footer>
     </Modal>

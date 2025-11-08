@@ -10,7 +10,7 @@ exports.protect = (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
       
       // Verifikasi token
-      const decoded = jwt.verify(token, 'RAHASIA_ANDA_SENDIRI'); // Pakai secret key Anda
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK'); // <-- SAMAKAN KUNCINYA!
       
       // Simpan data user dari token ke 'req' agar bisa dipakai controller
       req.user = decoded; // Ini akan berisi { userId: ..., level: ... }

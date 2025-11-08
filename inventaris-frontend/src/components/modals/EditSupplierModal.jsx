@@ -1,53 +1,75 @@
-// Lokasi file: src/components/modals/EditSupplierModal.jsx
-// (VERSI LENGKAP DAN SUDAH DIPERBAIKI)
-
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Alert } from 'react-bootstrap'; // <-- Tambah Alert
 
-// 'supplier' adalah prop yang berisi data supplier yang diklik
 const EditSupplierModal = ({ show, handleClose, handleUpdate, supplier }) => {
   
-  // State untuk form (pakai bahasa frontend: name, address, phone)
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     phone: ''
   });
 
-  // --- INI BAGIAN PENTING (MENGISI FORM) ---
-  // useEffect ini akan berjalan setiap kali 'supplier' (datanya) berubah
+  // --- PERBAIKAN DI SINI ---
+  const [isSaving, setIsSaving] = useState(false);
+  const [modalError, setModalError] = useState(null);
+
   useEffect(() => {
     if (supplier) {
-      // "Terjemahkan" dari bahasa backend (nama_supplier)
-      // ke bahasa frontend (name) saat form di-load
       setFormData({
         name: supplier.nama_supplier,
-        address: supplier.alamat || '', // || '' untuk jaga-jaga kalau datanya null
+        address: supplier.alamat || '',
         phone: supplier.telepon || ''
       });
     }
-  }, [supplier]); // "Pantau" prop 'supplier'
+    // Reset error saat modal dibuka
+    if (show) {
+      setModalError(null);
+      setIsSaving(false);
+    }
+  }, [supplier, show]);
 
-  // Fungsi untuk update state saat ngetik
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Validasi input telepon (hanya angka)
+    if (name === 'phone') {
+      const onlyNums = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({ ...prev, [name]: onlyNums }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  // --- INI BAGIAN PENTING (MENYIMPAN) ---
-  const onSave = () => {
-    // "Terjemahkan" kembali dari bahasa frontend (name)
-    // ke bahasa backend (nama_supplier) sebelum dikirim
+  const onSave = async () => { // <-- Buat jadi async
+    setModalError(null);
+    
+    // Validasi Frontend
+    if (!formData.name) {
+        setModalError('Nama Supplier tidak boleh kosong.');
+        return;
+    }
+
+    setIsSaving(true);
+    
     const dataUntukBackend = {
-      id: supplier.id, // <-- JANGAN LUPA ID-nya
+      id: supplier.id,
       nama_supplier: formData.name,
       alamat: formData.address,
       telepon: formData.phone
     };
 
-    // Panggil fungsi 'handleUpdateSupplier' yang ada di SupplierPage
-    handleUpdate(dataUntukBackend);
+    try {
+      // Panggil handleUpdate dan tunggu
+      await handleUpdate(dataUntukBackend);
+      // Jika sukses, parent akan menutup modal
+    } catch (error) {
+      // Jika gagal, tangkap error dan tampilkan
+      setModalError(error.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
+  // --- AKHIR PERBAIKAN ---
 
   return (
     <Modal show={show} onHide={handleClose} backdrop="static">
@@ -55,24 +77,28 @@ const EditSupplierModal = ({ show, handleClose, handleUpdate, supplier }) => {
         <Modal.Title>Edit Supplier</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+      
+        {/* Tampilkan error di DALAM modal */}
+        {modalError && <Alert variant="danger">{modalError}</Alert>}
+        
         <Form>
-          {/* Form ini SAMA PERSIS dengan AddSupplierModal */}
           <Form.Group className="mb-3">
-            <Form.Label>Nama Supplier</Form.Label>
+            <Form.Label>Nama Supplier <span className="text-danger">*</span></Form.Label>
             <Form.Control 
               type="text" 
-              name="name" // <-- pakai bahasa frontend
-              value={formData.name} // <-- pakai bahasa frontend
+              name="name" 
+              value={formData.name} 
               onChange={handleChange} 
               placeholder="Masukkan nama supplier"
+              required
             />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Alamat</Form.Label>
             <Form.Control 
               type="text" 
-              name="address" // <-- pakai bahasa frontend
-              value={formData.address} // <-- pakai bahasa frontend
+              name="address" 
+              value={formData.address} 
               onChange={handleChange} 
               placeholder="Masukkan alamat"
             />
@@ -80,11 +106,12 @@ const EditSupplierModal = ({ show, handleClose, handleUpdate, supplier }) => {
           <Form.Group className="mb-3">
             <Form.Label>Telepon</Form.Label>
             <Form.Control 
-              type="text" 
-              name="phone" // <-- pakai bahasa frontend
-              value={formData.phone} // <-- pakai bahasa frontend
+              type="tel" // <-- Ganti jadi "tel"
+              name="phone" 
+              value={formData.phone} 
               onChange={handleChange} 
               placeholder="Masukkan nomor telepon"
+              maxLength="15"
             />
           </Form.Group>
         </Form>
@@ -93,8 +120,8 @@ const EditSupplierModal = ({ show, handleClose, handleUpdate, supplier }) => {
         <Button variant="secondary" onClick={handleClose}>
           Batal
         </Button>
-        <Button variant="primary" onClick={onSave}>
-          Simpan Perubahan
+        <Button variant="primary" onClick={onSave} disabled={isSaving}>
+          {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
         </Button>
       </Modal.Footer>
     </Modal>

@@ -1,44 +1,77 @@
-// Lokasi file: components/AddBarangModal.jsx
-// (VERSI SUDAH DIPERBAIKI)
-
-import React, { useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Modal, Button, Form, Alert } from 'react-bootstrap'; // <-- Tambah Alert
 
 const AddBarangModal = ({ show, handleClose, handleSave }) => {
-  // --- LANGKAH 1: Sesuaikan nama state agar mirip database ---
   const [nama_barang, setNamaBarang] = useState('');
   const [jumlah_stok, setJumlahStok] = useState('');
-  
-  // --- LANGKAH 2: Tambahkan state untuk data yang HILANG ---
-  const [kondisi, setKondisi] = useState(''); // <-- Ini WAJIB diisi
+  const [kondisi, setKondisi] = useState('');
   const [spesifikasi, setSpesifikasi] = useState('');
   const [lokasi, setLokasi] = useState('');
   const [sumber_dana, setSumberDana] = useState('');
 
-  const onSave = () => {
-    // Cek data wajib
-    if (!nama_barang || !jumlah_stok || !kondisi) {
-      alert('Nama Barang, Stok, dan Kondisi tidak boleh kosong.');
-      return;
-    }
+  // --- PERBAIKAN DI SINI ---
+  const [isSaving, setIsSaving] = useState(false);
+  const [modalError, setModalError] = useState(null);
 
-    // --- LANGKAH 3: Kirim object dengan key YANG BENAR ---
-    handleSave({
-      nama_barang: nama_barang,
-      jumlah_stok: parseInt(jumlah_stok, 10), // Backend sudah parseInt, tapi ini bagus
-      kondisi: kondisi,
-      spesifikasi: spesifikasi,
-      lokasi: lokasi,
-      sumber_dana: sumber_dana
-    });
-
-    // Reset form
+  // Fungsi untuk mereset form
+  const resetForm = () => {
     setNamaBarang('');
     setJumlahStok('');
     setKondisi('');
     setSpesifikasi('');
     setLokasi('');
     setSumberDana('');
+    setModalError(null);
+    setIsSaving(false);
+  };
+
+  // Saat modal ditutup, reset form
+  useEffect(() => {
+    if (!show) {
+      // Beri sedikit jeda agar user tidak lihat form-nya reset sebelum animasi tutup
+      setTimeout(resetForm, 300);
+    }
+  }, [show]);
+
+  const onSave = async () => { // <-- Buat jadi async
+    // Validasi Frontend dulu
+    if (!nama_barang || jumlah_stok === '' || !kondisi) {
+      setModalError('Nama Barang, Stok, dan Kondisi tidak boleh kosong.');
+      return;
+    }
+
+    const stokInt = parseInt(jumlah_stok, 10);
+    if (stokInt < 0) {
+      setModalError('Jumlah stok tidak boleh negatif.');
+      return;
+    }
+    
+    setIsSaving(true);
+    setModalError(null);
+
+    try {
+      // Kirim object
+      await handleSave({
+        nama_barang: nama_barang,
+        jumlah_stok: stokInt,
+        kondisi: kondisi,
+        spesifikasi: spesifikasi,
+        lokasi: lokasi,
+        sumber_dana: sumber_dana
+      });
+      
+      // Jika handleSave SUKSES, dia tidak akan throw error.
+      // Parent (BarangPage) akan menutup modal.
+      // Kita tidak perlu reset form di sini, karena sudah di-handle useEffect [show]
+      
+    } catch (error) {
+      // Jika handleSave GAGAL (throw error), tangkap di sini
+      setModalError(error.message);
+      // JANGAN RESET FORM
+    } finally {
+      setIsSaving(false);
+    }
+    // --- AKHIR PERBAIKAN ---
   };
 
   return (
@@ -47,6 +80,10 @@ const AddBarangModal = ({ show, handleClose, handleSave }) => {
         <Modal.Title>Tambah Barang Baru</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        
+        {/* Tampilkan error di DALAM modal */}
+        {modalError && <Alert variant="danger">{modalError}</Alert>}
+
         <Form>
           {/* --- FIELD NAMA BARANG (WAJIB) --- */}
           <Form.Group className="mb-3" controlId="formBarangName">
@@ -56,6 +93,7 @@ const AddBarangModal = ({ show, handleClose, handleSave }) => {
               placeholder="Masukkan nama barang" 
               value={nama_barang}
               onChange={(e) => setNamaBarang(e.target.value)}
+              required
             />
           </Form.Group>
 
@@ -67,10 +105,12 @@ const AddBarangModal = ({ show, handleClose, handleSave }) => {
               placeholder="Masukkan jumlah stok" 
               value={jumlah_stok}
               onChange={(e) => setJumlahStok(e.target.value)}
+              min="0" // <-- Ini juga penting
+              required
             />
           </Form.Group>
 
-          {/* --- FIELD KONDISI (WAJIB) --- */}
+          {/* ... (Form group lainnya tidak berubah) ... */}
           <Form.Group className="mb-3" controlId="formBarangKondisi">
             <Form.Label>Kondisi <span className="text-danger">*</span></Form.Label>
             <Form.Control 
@@ -78,10 +118,9 @@ const AddBarangModal = ({ show, handleClose, handleSave }) => {
               placeholder="Contoh: Baru, Bekas, Rusak Ringan" 
               value={kondisi}
               onChange={(e) => setKondisi(e.target.value)}
+              required
             />
           </Form.Group>
-
-          {/* --- FIELD OPSIONAL --- */}
           <Form.Group className="mb-3" controlId="formBarangSpesifikasi">
             <Form.Label>Spesifikasi</Form.Label>
             <Form.Control 
@@ -91,7 +130,6 @@ const AddBarangModal = ({ show, handleClose, handleSave }) => {
               onChange={(e) => setSpesifikasi(e.target.value)}
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="formBarangLokasi">
             <Form.Label>Lokasi</Form.Label>
             <Form.Control 
@@ -101,7 +139,6 @@ const AddBarangModal = ({ show, handleClose, handleSave }) => {
               onChange={(e) => setLokasi(e.target.value)}
             />
           </Form.Group>
-
           <Form.Group className="mb-3" controlId="formBarangSumberDana">
             <Form.Label>Sumber Dana</Form.Label>
             <Form.Control 
@@ -118,8 +155,8 @@ const AddBarangModal = ({ show, handleClose, handleSave }) => {
         <Button variant="secondary" onClick={handleClose}>
           Batal
         </Button>
-        <Button variant="primary" onClick={onSave}>
-          Simpan
+        <Button variant="primary" onClick={onSave} disabled={isSaving}>
+          {isSaving ? 'Menyimpan...' : 'Simpan'}
         </Button>
       </Modal.Footer>
     </Modal>
