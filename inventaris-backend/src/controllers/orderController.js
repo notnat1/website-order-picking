@@ -1,5 +1,5 @@
 // Lokasi file: src/controllers/orderController.js
-// (VERSI LENGKAP + 2 FUNGSI BARU)
+// (VERSI LENGKAP + FITUR ARSIP LENGKAP)
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -34,7 +34,6 @@ exports.createOrder = async (req, res) => {
 };
 
 // 2. FUNGSI UNTUK MELIHAT SEMUA TUGAS PICKING (TETAP)
-// Ini dipakai oleh halaman Karyawan Gudang
 exports.getPendingOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
@@ -123,33 +122,64 @@ exports.completeOrderPicking = async (req, res) => {
   }
 };
 
-// --- 5. FUNGSI BARU: Mengambil SEMUA Order (untuk Admin) ---
+// --- 5. FUNGSI DIMODIFIKASI: Mengambil Order (Berdasarkan Filter) ---
 exports.getAllOrders = async (req, res) => {
   try {
+    const { status } = req.query;
+
+    let whereClause = {};
+
+    // Filter berdasarkan status dari query
+    if (status === 'archived') {
+      // Jika user klik "Lihat Arsip"
+      whereClause.status = 'Archived';
+    } else {
+      // Jika default (aktif)
+      whereClause.status = { in: ['Pending', 'Picked'] };
+    }
+
     const orders = await prisma.order.findMany({
-      where: {
-        // Kita HANYA tampilkan yang Belum Diarsipkan
-        NOT: {
-          status: "Archived" 
-        }
-      },
-      // Urutkan dari yang terbaru
-      orderBy: { createdAt: 'desc' }, 
+      where: whereClause,
+      orderBy: { createdAt: 'desc' },
       include: {
         _count: {
-          select: { orderItems: true }
-        }
-      }
+          select: { orderItems: true },
+        },
+      },
     });
+
     res.status(200).json(orders);
   } catch (error) {
-    console.error("--- GAGAL MENGAMBIL SEMUA ORDER ---", error);
+    console.error('--- GAGAL MENGAMBIL SEMUA ORDER ---', error);
+    res.status(500).json({ error: 'Gagal mengambil data pesanan.' });
+  }
+};
+
+
+// --- 6. FUNGSI UNTUK MENGARSIPKAN ORDER (Tombol "X") (TETAP) ---
+exports.archiveOrder = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const order = await prisma.order.findUnique({ where: { id: parseInt(id) } });
+    if (!order) {
+      return res.status(404).json({ error: "Order tidak ditemukan." });
+    }
+    if (order.status !== "Picked") {
+      return res.status(400).json({ error: "Hanya order yang sudah 'Picked' (Selesai) yang bisa diarsipkan." });
+    }
+    await prisma.order.update({
+      where: { id: parseInt(id) },
+      data: { status: "Archived" }
+    });
+    res.status(200).json({ message: "Order berhasil diarsipkan." });
+  } catch (error) {
+    console.error(`--- GAGAL MENGARSIPKAN ORDER ${id} ---`, error);
     res.status(500).json({ error: error.message });
   }
 };
 
-// --- 6. FUNGSI BARU: Mengarsipkan Order (Tombol "X") ---
-exports.archiveOrder = async (req, res) => {
+// --- 7. FUNGSI BARU: Mengembalikan Order dari Arsip ---
+exports.unarchiveOrder = async (req, res) => {
   const { id } = req.params;
   try {
     const order = await prisma.order.findUnique({
@@ -159,31 +189,32 @@ exports.archiveOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({ error: "Order tidak ditemukan." });
     }
-
-    // Hanya order yang sudah "Picked" yang bisa diarsip
-    if (order.status !== "Picked") {
-      return res.status(400).json({ error: "Hanya order yang sudah 'Picked' (Selesai) yang bisa diarsipkan." });
+    
+    // Hanya order "Archived" yang bisa dipulihkan
+    if (order.status !== "Archived") {
+      return res.status(400).json({ error: "Order ini tidak ada di arsip." });
     }
 
     await prisma.order.update({
       where: { id: parseInt(id) },
-      data: { status: "Archived" } // Ganti status
+      data: { status: "Picked" } // Kembalikan statusnya ke "Picked" (Selesai)
     });
 
-    res.status(200).json({ message: "Order berhasil diarsipkan." });
+    res.status(200).json({ message: "Order berhasil dipulihkan." });
   } catch (error) {
-    console.error(`--- GAGAL MENGARSIPKAN ORDER ${id} ---`, error);
+    console.error(`--- GAGAL MEMULIHKAN ORDER ${id} ---`, error);
     res.status(500).json({ error: error.message });
   }
 };
 
 
-// Pastikan ekspornya benar (ditambah 2 fungsi baru)
+// Pastikan ekspornya benar (ditambah 1 fungsi baru)
 module.exports = {
   createOrder: exports.createOrder,
   getPendingOrders: exports.getPendingOrders,
   getOrderDetail: exports.getOrderDetail,
   completeOrderPicking: exports.completeOrderPicking,
-  getAllOrders: exports.getAllOrders,     // <-- TAMBAHAN BARU
-  archiveOrder: exports.archiveOrder      // <-- TAMBAHAN BARU
+  getAllOrders: exports.getAllOrders,
+  archiveOrder: exports.archiveOrder,
+  unarchiveOrder: exports.unarchiveOrder
 };

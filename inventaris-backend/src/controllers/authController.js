@@ -77,7 +77,7 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       payload,
-      process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK', // <-- KUNCI 1
+      process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK', // <-- INI KUNCI 1
       { expiresIn: '8h' }
     );
 

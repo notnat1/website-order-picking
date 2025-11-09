@@ -16,7 +16,12 @@ const app = express();
 const PORT = 5001; // Backend kita akan jalan di port 5001
 
 // === Middleware ===
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Rute dasar untuk mengecek apakah server berjalan

@@ -11,13 +11,8 @@ exports.protect = (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       
-      // Verifikasi token
-      // --- PERBAIKANNYA DI SINI ---
       // Kita samakan kuncinya dengan yang ada di authController.js
-      const decoded = jwt.verify(
-        token, 
-        process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK' // <-- SAMAKAN KUNCINYA!
-      ); 
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK'); // <-- SAMAKAN KUNCINYA! // <-- SAMAKAN KUNCINYA!
       
       // Simpan data user dari token ke 'req' agar bisa dipakai controller
       req.user = decoded; // Ini akan berisi { userId: ..., level: ... }
