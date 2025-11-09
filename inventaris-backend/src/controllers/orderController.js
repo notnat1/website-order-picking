@@ -1,8 +1,10 @@
 // Lokasi file: src/controllers/orderController.js
+// (VERSI LENGKAP + 2 FUNGSI BARU)
+
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// 1. FUNGSI UNTUK MEMBUAT PESANAN BARU
+// 1. FUNGSI UNTUK MEMBUAT PESANAN BARU (TETAP)
 exports.createOrder = async (req, res) => {
   const { nama_pemesan, items } = req.body;
   if (!nama_pemesan || !items || items.length === 0) {
@@ -14,7 +16,7 @@ exports.createOrder = async (req, res) => {
       data: {
         nama_pemesan,
         nomor_pesanan,
-        status: "Pending",
+        status: "Pending", // Status awal
         orderItems: {
           create: items.map(item => ({
             item_id: parseInt(item.item_id),
@@ -31,7 +33,8 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// 2. FUNGSI UNTUK MELIHAT SEMUA TUGAS PICKING (Order 'Pending')
+// 2. FUNGSI UNTUK MELIHAT SEMUA TUGAS PICKING (TETAP)
+// Ini dipakai oleh halaman Karyawan Gudang
 exports.getPendingOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
@@ -50,7 +53,7 @@ exports.getPendingOrders = async (req, res) => {
   }
 };
 
-// 3. FUNGSI UNTUK MELIHAT DETAIL SATU TUGAS PICKING
+// 3. FUNGSI UNTUK MELIHAT DETAIL SATU TUGAS PICKING (TETAP)
 exports.getOrderDetail = async (req, res) => {
   const { id } = req.params;
   try {
@@ -75,7 +78,7 @@ exports.getOrderDetail = async (req, res) => {
 };
 
 
-// 4. FUNGSI "JANTUNG" (Selesaikan Picking & Kurangi Stok)
+// 4. FUNGSI "JANTUNG" (Selesaikan Picking & Kurangi Stok) (TETAP)
 exports.completeOrderPicking = async (req, res) => {
   const { id } = req.params;
   const orderId = parseInt(id);
@@ -109,7 +112,7 @@ exports.completeOrderPicking = async (req, res) => {
     transactionQueries.push(
       prisma.order.update({
         where: { id: orderId },
-        data: { status: "Picked" }
+        data: { status: "Picked" } // Status berubah jadi "Picked"
       })
     );
     await prisma.$transaction(transactionQueries);
@@ -120,10 +123,67 @@ exports.completeOrderPicking = async (req, res) => {
   }
 };
 
-// Pastikan ekspornya benar (ini yang suka bikin error '... is not a function')
+// --- 5. FUNGSI BARU: Mengambil SEMUA Order (untuk Admin) ---
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        // Kita HANYA tampilkan yang Belum Diarsipkan
+        NOT: {
+          status: "Archived" 
+        }
+      },
+      // Urutkan dari yang terbaru
+      orderBy: { createdAt: 'desc' }, 
+      include: {
+        _count: {
+          select: { orderItems: true }
+        }
+      }
+    });
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("--- GAGAL MENGAMBIL SEMUA ORDER ---", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// --- 6. FUNGSI BARU: Mengarsipkan Order (Tombol "X") ---
+exports.archiveOrder = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: "Order tidak ditemukan." });
+    }
+
+    // Hanya order yang sudah "Picked" yang bisa diarsip
+    if (order.status !== "Picked") {
+      return res.status(400).json({ error: "Hanya order yang sudah 'Picked' (Selesai) yang bisa diarsipkan." });
+    }
+
+    await prisma.order.update({
+      where: { id: parseInt(id) },
+      data: { status: "Archived" } // Ganti status
+    });
+
+    res.status(200).json({ message: "Order berhasil diarsipkan." });
+  } catch (error) {
+    console.error(`--- GAGAL MENGARSIPKAN ORDER ${id} ---`, error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// Pastikan ekspornya benar (ditambah 2 fungsi baru)
 module.exports = {
   createOrder: exports.createOrder,
   getPendingOrders: exports.getPendingOrders,
   getOrderDetail: exports.getOrderDetail,
-  completeOrderPicking: exports.completeOrderPicking
+  completeOrderPicking: exports.completeOrderPicking,
+  getAllOrders: exports.getAllOrders,     // <-- TAMBAHAN BARU
+  archiveOrder: exports.archiveOrder      // <-- TAMBAHAN BARU
 };

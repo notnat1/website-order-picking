@@ -1,7 +1,9 @@
 // Lokasi: src/middleware/authMiddleware.js
+// (VERSI LENGKAP + PERBAIKAN KUNCI)
+
 const jwt = require('jsonwebtoken');
 
-// Middleware untuk mengecek apakah user sudah login (membawa token valid)
+// Middleware untuk mengecek apakah user sudah login
 exports.protect = (req, res, next) => {
   let token;
   // Token akan dikirim di header 'Authorization' dengan format 'Bearer <token>'
@@ -10,13 +12,20 @@ exports.protect = (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
       
       // Verifikasi token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK'); // <-- SAMAKAN KUNCINYA!
+      // --- PERBAIKANNYA DI SINI ---
+      // Kita samakan kuncinya dengan yang ada di authController.js
+      const decoded = jwt.verify(
+        token, 
+        process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK' // <-- SAMAKAN KUNCINYA!
+      ); 
       
       // Simpan data user dari token ke 'req' agar bisa dipakai controller
       req.user = decoded; // Ini akan berisi { userId: ..., level: ... }
       next();
 
     } catch (error) {
+      // Ini akan gagal jika kuncinya salah atau tokennya kadaluwarsa
+      console.error("--- TOKEN VERIFY GAGAL ---", error.message);
       res.status(401).json({ error: 'Token tidak valid, otorisasi gagal' });
     }
   }
@@ -27,7 +36,6 @@ exports.protect = (req, res, next) => {
 };
 
 // Middleware untuk mengecek LEVEL/ROLE user
-// '...roles' adalah daftar level yang diizinkan (e.g., 'admin', 'manajemen')
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.level)) {

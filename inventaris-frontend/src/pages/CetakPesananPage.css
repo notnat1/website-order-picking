@@ -1,0 +1,95 @@
+/* Lokasi: src/pages/CetakPesananPage.css */
+
+/* --- PERBAIKAN DI SINI --- */
+/* 1. Hapus style 'body' yang merusak */
+
+/* 2. Buat wrapper baru untuk background abu-abu */
+.print-page-container {
+  background: #f0f4f8 !important; /* Latar abu-abu (simulasi di luar kertas) */
+  padding: 2rem 0; /* Beri jarak atas-bawah */
+  min-height: 100vh; /* Pastikan penuhi layar */
+  width: 100%;
+}
+/* --- AKHIR PERBAIKAN --- */
+
+/* Style untuk kertasnya */
+.nota-wrapper {
+  width: 21cm;
+  min-height: 29.7cm;
+  max-width: 100%;
+  margin: 0 auto; /* Center kertasnya */
+  padding: 2cm;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  color: #000;
+  background: #fff; /* Background kertas putih */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.nota-header {
+  text-align: center;
+  border-bottom: 2px dashed #ccc;
+  padding-bottom: 1rem;
+}
+
+.nota-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.nota-table {
+  color: #000 !important;
+}
+
+.nota-table th,
+.nota-table td {
+  color: #000 !important;
+  border: 1px solid #ccc !important;
+}
+
+.nota-footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Style print (biarkan, ini sudah benar) */
+@media print {
+  body {
+    background: #fff;
+  }
+
+  /* Sembunyikan semua kecuali nota */
+  body * {
+    visibility: hidden;
+  }
+  .nota-wrapper,
+  .nota-wrapper * {
+    visibility: visible;
+  }
+
+  /* Sembunyikan container abu-abu saat print */
+  .print-page-container {
+    background: #fff !important;
+    padding: 0;
+  }
+
+  .nota-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 1cm;
+    border: none;
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .d-print-none {
+    display: none !important;
+  }
+}

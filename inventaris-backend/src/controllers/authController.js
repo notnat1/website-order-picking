@@ -1,5 +1,5 @@
-// Lokasi: src/controllers/authController.js
-// (VERSI LENGKAP + FUNGSI BARU)
+// Lokasi file: src/controllers/authController.js
+// (VERSI BENAR)
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -77,7 +77,7 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       payload,
-      process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK', // <-- INI KUNCI 1
+      process.env.JWT_SECRET || 'RAHASIA_YANG_SANGAT_SULIT_DITEBAK', // <-- KUNCI 1
       { expiresIn: '8h' }
     );
 
@@ -102,7 +102,6 @@ exports.login = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      // Kita HANYA pilih data yang aman untuk dikirim
       select: {
         id: true,
         nama: true,
@@ -110,7 +109,7 @@ exports.getAllUsers = async (req, res) => {
         level: true
       },
       orderBy: {
-        id: 'asc' // Urutkan berdasarkan ID
+        id: 'asc'
       }
     });
     res.status(200).json(users);
@@ -125,5 +124,5 @@ exports.getAllUsers = async (req, res) => {
 module.exports = {
   register: exports.register,
   login: exports.login,
-  getAllUsers: exports.getAllUsers // <-- TAMBAHKAN INI
+  getAllUsers: exports.getAllUsers
 };

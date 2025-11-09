@@ -53,6 +53,7 @@ const Layout = () => {
                 <Nav.Link as={NavLink} to="/supplier">Data Supplier</Nav.Link>
                 <Nav.Link as={NavLink} to="/barang-masuk">Barang Masuk</Nav.Link>
                 <Nav.Link as={NavLink} to="/buat-pesanan">Buat Pesanan</Nav.Link>
+                <Nav.Link as={NavLink} to="/histori-pesanan">Histori Pesanan</Nav.Link>
               </>
             )}
             

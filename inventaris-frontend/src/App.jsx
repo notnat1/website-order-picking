@@ -1,65 +1,62 @@
-// import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Routes, Route } from 'react-router-dom';
-// Impor Layout Induk
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Impor SEMUA Halaman (Pages)
-import DashboardPage from './pages/DashboardPage'; // <-- Impor asli
+// Impor Halaman
+import DashboardPage from './pages/DashboardPage';
 import BarangPage from './pages/BarangPage';
 import SupplierPage from './pages/SupplierPage';
 import BarangMasukPage from './pages/BarangMasukPage';
 import BuatPesananPage from './pages/BuatPesananPage';
-import TugasPickingPage from './pages/TugasPickingPage'; // <-- Impor asli
-import PickingDetailPage from './pages/PickingDetailPage'; // <-- Impor detail
+import TugasPickingPage from './pages/TugasPickingPage';
+import PickingDetailPage from './pages/PickingDetailPage';
 import LoginPage from './pages/LoginPage';
-import ManajemenUserPage from './pages/ManajemenUserPage'; // <-- 1. PERUBAHAN DI SINI
+import ManajemenUserPage from './pages/ManajemenUserPage';
+import HistoriPesananPage from './pages/HistoriPesananPage';
+import CetakPesananPage from './pages/CetakPesananPage'; // <-- 1. IMPOR HALAMAN CETAK
 
 function App() {
   return (
     <Routes>
       
-      {/* RUTE GRUP 1: HALAMAN PUBLIK (TANPA LAYOUT/SIDEBAR)
-        Siapapun bisa mengakses ini.
-      */}
+      {/* RUTE PUBLIK (Login) */}
       <Route path="/login" element={<LoginPage />} />
 
-
-      {/* RUTE GRUP 2: HALAMAN PRIBADI (WAJIB LOGIN & PAKAI LAYOUT)
-        Dibungkus oleh "Satpam" ProtectedRoute.
-      */}
+      {/* RUTE UTAMA (Pake Sidebar/Layout) */}
       <Route 
         path="/" 
         element={
-          <ProtectedRoute> {/* <-- SATPAM JAGA DI SINI */}
-            <Layout />     {/* <-- Jika lolos, tampilkan Layout (Sidebar, Header, dll) */}
+          <ProtectedRoute>
+            <Layout />
           </ProtectedRoute>
         }
       >
-        {/* Semua rute di bawah ini adalah "Anak" dari Layout.
-          Mereka akan di-render di dalam <Outlet /> di Layout.jsx 
-        */}
         <Route index element={<DashboardPage />} /> 
-        
         <Route path="barang" element={<BarangPage />} />
         <Route path="supplier" element={<SupplierPage />} />
         <Route path="barang-masuk" element={<BarangMasukPage />} />
         <Route path="buat-pesanan" element={<BuatPesananPage />} />
-        
         <Route path="tugas-picking" element={<TugasPickingPage />} />
         <Route path="tugas-picking/:id" element={<PickingDetailPage />} />
-
-        {/* 2. PERUBAHAN DI SINI */}
         <Route path="manajemen-user" element={<ManajemenUserPage />} />
+        <Route path="histori-pesanan" element={<HistoriPesananPage />} />
 
-        {/* Rute "Not Found" di dalam aplikasi */}
         <Route path="*" element={
           <div className="content-card">
             <h2>404 - Halaman Tidak Ditemukan</h2>
           </div>
         } />
-        
-      </Route> {/* <-- Penutup Rute Grup 2 */}
+      </Route>
+
+      {/* 2. RUTE BARU (Terproteksi, TAPI TANPA Sidebar) */}
+      <Route 
+        path="/cetak/pesanan/:id" 
+        element={
+          <ProtectedRoute>
+            <CetakPesananPage />
+          </ProtectedRoute>
+        } 
+      />
 
     </Routes>
   );
