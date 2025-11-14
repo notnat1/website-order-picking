@@ -12,6 +12,8 @@ import {
   Alert 
 } from 'react-bootstrap'; // Hapus Container
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
 const BuatPesananPage = () => {
   // --- SEMUA LOGIKA LAMA KAMU (AMAN) ---
   const [nama_pemesan, setNamaPemesan] = useState('');
@@ -26,7 +28,7 @@ const BuatPesananPage = () => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/items');
+        const response = await axios.get(`${API_URL}/items`);
         setListBarang(response.data); 
       } catch (err) {
         setError('Gagal memuat daftar barang.');
@@ -91,7 +93,7 @@ const BuatPesananPage = () => {
       }))
     };
     try {
-      const response = await axios.post('http://localhost:5001/api/orders', payload);
+      const response = await axios.post(`${API_URL}/orders`, payload);
       setSuccess(`Pesanan ${response.data.nomor_pesanan} berhasil dibuat!`);
       setNamaPemesan('');
       setCart([]);

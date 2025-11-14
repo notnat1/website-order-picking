@@ -1,10 +1,10 @@
 // Lokasi file: src/controllers/orderController.js
-// (VERSI LENGKAP + FITUR ARSIP LENGKAP)
+// (VERSI LENGKAP + FUNGSI BARU)
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// 1. FUNGSI UNTUK MEMBUAT PESANAN BARU (TETAP)
+// 1. FUNGSI UNTUK MEMBUAT PESANAN BARU
 exports.createOrder = async (req, res) => {
   const { nama_pemesan, items } = req.body;
   if (!nama_pemesan || !items || items.length === 0) {
@@ -33,7 +33,7 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// 2. FUNGSI UNTUK MELIHAT SEMUA TUGAS PICKING (TETAP)
+// 2. FUNGSI UNTUK MELIHAT SEMUA TUGAS PICKING (Order 'Pending')
 exports.getPendingOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
@@ -52,7 +52,7 @@ exports.getPendingOrders = async (req, res) => {
   }
 };
 
-// 3. FUNGSI UNTUK MELIHAT DETAIL SATU TUGAS PICKING (TETAP)
+// 3. FUNGSI UNTUK MELIHAT DETAIL SATU TUGAS PICKING
 exports.getOrderDetail = async (req, res) => {
   const { id } = req.params;
   try {
@@ -77,7 +77,7 @@ exports.getOrderDetail = async (req, res) => {
 };
 
 
-// 4. FUNGSI "JANTUNG" (Selesaikan Picking & Kurangi Stok) (TETAP)
+// 4. FUNGSI "JANTUNG" (Selesaikan Picking & Kurangi Stok)
 exports.completeOrderPicking = async (req, res) => {
   const { id } = req.params;
   const orderId = parseInt(id);
@@ -122,41 +122,40 @@ exports.completeOrderPicking = async (req, res) => {
   }
 };
 
-// --- 5. FUNGSI DIMODIFIKASI: Mengambil Order (Berdasarkan Filter) ---
+// --- 5. FUNGSI BARU: Mengambil Order (Berdasarkan Filter) ---
 exports.getAllOrders = async (req, res) => {
+  const { status } = req.query; 
+
+  let whereClause = {};
+  let orderByClause = { createdAt: 'desc' };
+
+  if (status === 'archived') {
+    whereClause = { status: "Archived" };
+  } else {
+    whereClause = { 
+      NOT: { status: "Archived" } 
+    };
+    orderByClause = { status: 'asc' }; 
+  }
+
   try {
-    const { status } = req.query;
-
-    let whereClause = {};
-
-    // Filter berdasarkan status dari query
-    if (status === 'archived') {
-      // Jika user klik "Lihat Arsip"
-      whereClause.status = 'Archived';
-    } else {
-      // Jika default (aktif)
-      whereClause.status = { in: ['Pending', 'Picked'] };
-    }
-
     const orders = await prisma.order.findMany({
-      where: whereClause,
-      orderBy: { createdAt: 'desc' },
+      where: whereClause, 
+      orderBy: orderByClause, 
       include: {
         _count: {
-          select: { orderItems: true },
-        },
-      },
+          select: { orderItems: true }
+        }
+      }
     });
-
     res.status(200).json(orders);
   } catch (error) {
-    console.error('--- GAGAL MENGAMBIL SEMUA ORDER ---', error);
-    res.status(500).json({ error: 'Gagal mengambil data pesanan.' });
+    console.error("--- GAGAL MENGAMBIL SEMUA ORDER ---", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-
-// --- 6. FUNGSI UNTUK MENGARSIPKAN ORDER (Tombol "X") (TETAP) ---
+// --- 6. FUNGSI BARU: Mengarsipkan Order (Tombol "X") ---
 exports.archiveOrder = async (req, res) => {
   const { id } = req.params;
   try {
@@ -190,14 +189,13 @@ exports.unarchiveOrder = async (req, res) => {
       return res.status(404).json({ error: "Order tidak ditemukan." });
     }
     
-    // Hanya order "Archived" yang bisa dipulihkan
     if (order.status !== "Archived") {
       return res.status(400).json({ error: "Order ini tidak ada di arsip." });
     }
 
     await prisma.order.update({
       where: { id: parseInt(id) },
-      data: { status: "Picked" } // Kembalikan statusnya ke "Picked" (Selesai)
+      data: { status: "Picked" } 
     });
 
     res.status(200).json({ message: "Order berhasil dipulihkan." });
@@ -207,14 +205,3 @@ exports.unarchiveOrder = async (req, res) => {
   }
 };
 
-
-// Pastikan ekspornya benar (ditambah 1 fungsi baru)
-module.exports = {
-  createOrder: exports.createOrder,
-  getPendingOrders: exports.getPendingOrders,
-  getOrderDetail: exports.getOrderDetail,
-  completeOrderPicking: exports.completeOrderPicking,
-  getAllOrders: exports.getAllOrders,
-  archiveOrder: exports.archiveOrder,
-  unarchiveOrder: exports.unarchiveOrder
-};

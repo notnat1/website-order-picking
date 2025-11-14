@@ -1,4 +1,5 @@
 // Lokasi: src/controllers/statsController.js
+
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
@@ -19,26 +20,37 @@ exports.getDashboardStats = async (req, res) => {
       where: { status: 'Aktif' }
     });
 
-    // 4. Hitung total nilai stok (jika diperlukan)
-    // Ini menjumlahkan semua 'jumlah_stok' dari item aktif
+    // --- FITUR BARU: Hitung Item Stok Rendah ---
+    const lowStockItems = prisma.item.count({
+      where: {
+        status: 'Aktif',
+        jumlah_stok: {
+          lte: prisma.item.fields.min_stok // jumlah_stok <= min_stok
+        }
+      }
+    });
+
+    // 4. Hitung total nilai stok 
     const totalStock = prisma.item.aggregate({
       _sum: { jumlah_stok: true },
       where: { status: 'Aktif' }
     });
 
     // Jalankan semua query sekaligus
-    const [pendingCount, itemCount, supplierCount, stockSum] = await Promise.all([
+    const [pendingCount, itemCount, supplierCount, stockSum, lowStockCount] = await Promise.all([
       pendingOrders,
       totalItems,
       totalSuppliers,
-      totalStock
+      totalStock,
+      lowStockItems // <-- Item Low Stock
     ]);
 
     res.status(200).json({
       pendingOrders: pendingCount,
       totalItems: itemCount,
       totalSuppliers: supplierCount,
-      totalStock: stockSum._sum.jumlah_stok || 0
+      totalStock: stockSum._sum.jumlah_stok || 0,
+      lowStockCount: lowStockCount // <-- Kirim data baru
     });
 
   } catch (error) {

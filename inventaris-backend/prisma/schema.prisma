@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Lokasi: inventaris-backend/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -13,41 +9,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-// TABEL BARU #1: Untuk mencatat pesanan
-model Order {
-  id          Int       @id @default(autoincrement())
-  nomor_pesanan String    @unique // Misal: "SO-1001"
-  nama_pemesan  String    // Siapa yang pesan
-  status      String    @default("Pending") // Pending, Picking, Picked
-  createdAt   DateTime  @default(now())
-  
-  // Relasi: Satu Order punya BANYAK detail barang
-  orderItems  OrderDetail[]
-}
-
-// TABEL BARU #2: Untuk mencatat barang apa saja di dalam 1 pesanan
-model OrderDetail {
-  id        Int   @id @default(autoincrement())
-  jumlah    Int
-  
-  // Relasi ke Order
-  order_id  Int
-  order     Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
-  
-  // Relasi ke Item
-  item_id   Int
-  item      Item  @relation(fields: [item_id], references: [id])
-}
-
-// Ini adalah file: prisma/schema.prisma
-
 model User {
   id        Int      @id @default(autoincrement())
   nama      String
   username  String   @unique
   password  String
-  level     String   @default("manajemen") // "admin" or "manajemen"
+  level     String   @default("manajemen") // "manajemen" or "gudang"
+  status    String   @default("Aktif") // <-- Tambahan untuk Kualitas Data
+  
+  // Relasi ke Order (Assignment)
+  assignedOrders Order[]
 }
 
 model Supplier {
@@ -55,10 +26,7 @@ model Supplier {
   nama_supplier String   @unique
   alamat        String?
   telepon       String?
-
   status        String   @default("Aktif")
-
-  // Relasi: Satu supplier bisa memasok banyak barang masuk
   barangMasuk   BarangMasuk[]
 }
 
@@ -69,9 +37,9 @@ model Item { // Ini adalah Data Barang
   lokasi      String?
   kondisi     String
   jumlah_stok Int      @default(0)
+  min_stok    Int      @default(5) // <-- Safety Stock
   sumber_dana String?
-
-  status  String  @default("Aktif") // <-- TAMBAHKAN BARIS INI
+  status      String   @default("Aktif")
 
   // Relasi
   barangMasuk   BarangMasuk[]
@@ -83,23 +51,53 @@ model BarangMasuk {
   id            Int      @id @default(autoincrement())
   tanggal_masuk DateTime @default(now())
   jumlah        Int
-
-  // Kunci relasi ke Item
   item_id       Int
   item          Item     @relation(fields: [item_id], references: [id])
-
-  // Kunci relasi ke Supplier
   supplier_id   Int
   supplier      Supplier @relation(fields: [supplier_id], references: [id])
 }
 
-model BarangKeluar { // Ini adalah Peminjaman
+model BarangKeluar { // Ini adalah Peminjaman / Audit Log
   id              Int       @id @default(autoincrement())
   tanggal_keluar  DateTime  @default(now())
   jumlah          Int
-  penerima        String    // Siapa yang pinjam/ambil
+  penerima        String?    // Siapa yang pinjam/ambil (Nama Picker/Penerima Umum)
+  tipe            String    @default("GENERAL") // <-- Tipe: PICKING, GENERAL, RUSAK
+  
+  // Relasi ke Order (jika tipe=PICKING)
+  order_id        Int?
+  order           Order?    @relation(fields: [order_id], references: [id])
 
   // Kunci relasi ke Item
   item_id         Int
   item            Item      @relation(fields: [item_id], references: [id])
+}
+
+// TABEL ORDER BARU #1
+model Order {
+  id            Int       @id @default(autoincrement())
+  nomor_pesanan String    @unique
+  nama_pemesan  String
+  status        String    @default("Pending") 
+  createdAt     DateTime  @default(now())
+  
+  // Fitur Picker Assignment
+  picker_id     Int?
+  picker        User?     @relation(fields: [picker_id], references: [id])
+  
+  // Relasi
+  orderItems    OrderDetail[]
+  barangKeluar  BarangKeluar[]
+}
+
+// TABEL ORDER DETAIL #2
+model OrderDetail {
+  id        Int   @id @default(autoincrement())
+  jumlah    Int
+  
+  order_id  Int
+  order     Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  
+  item_id   Int
+  item      Item  @relation(fields: [item_id], references: [id])
 }
