@@ -62,7 +62,7 @@ const DashboardPage = () => {
       {/* --- Alert Stok Rendah --- */}
       {stats && stats.lowStockCount > 0 && (
         <Alert variant="danger" className="mb-4">
-          🚨 **PERINGATAN STOK:** Terdapat **{stats.lowStockCount}** jenis barang yang berada di bawah batas minimum (Safety Stock). Segera buat Barang Masuk!
+          🚨PERINGATAN STOK: Terdapat {stats.lowStockCount} jenis barang yang berada di bawah batas minimum (Safety Stock). Segera buat Barang Masuk!
         </Alert>
       )}
       {/* --- Akhir Alert --- */}
