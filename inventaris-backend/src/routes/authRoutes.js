@@ -9,7 +9,8 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 // URL: POST /api/auth/register
 // Hanya 'manajemen' yang bisa mendaftarkan
-router.post('/register', protect, authorize('manajemen'), authController.register);
+router.post('/register', authController.register);
+//router.post('/register', protect, authorize('manajemen'), authController.register);
 
 // URL: POST /api/auth/login
 // Publik, semua boleh akses
