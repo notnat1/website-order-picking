@@ -67,13 +67,19 @@ pipeline {
 
     post {
         success {
-            echo 'Docker Compose Deployment successful!'
+            steps {
+                echo 'Docker Compose Deployment successful!'
+            }
         }
         failure {
-            echo 'Docker Compose Deployment failed! Check logs in Jenkins and on the VPS.'
+            steps {
+                echo 'Docker Compose Deployment failed! Check logs in Jenkins and on the VPS.'
+            }
         }
         always {
-            // cleanWs()
+            steps {
+                cleanWs()
+            }
         }
     }
 }
