@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import axios from 'axios';
+import toast from 'react-hot-toast'; // Import toast
 
 const AddBarangMasukModal = ({ show, handleClose, handleSave }) => {
   // --- State untuk form input ---
@@ -16,14 +17,21 @@ const AddBarangMasukModal = ({ show, handleClose, handleSave }) => {
   const [listSupplier, setListSupplier] = useState([]);
 
   // --- State untuk loading & error ---
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false); // For dropdown data loading
+  const [error, setError] = useState(null); // For dropdown data error
+  const [isSaving, setIsSaving] = useState(false); // For form submission saving
 
   // Ini akan berjalan SETIAP KALI modal dibuka (prop 'show' berubah jadi true)
   useEffect(() => {
     if (show) {
       // Panggil fungsi untuk mengambil data dropdown
       fetchDropdownData();
+      // Reset form fields when modal opens
+      setItemId('');
+      setSupplierId('');
+      setJumlah('');
+      setError(null); // Clear previous dropdown errors
+      setIsSaving(false); // Reset saving state
     }
   }, [show]); // "Pantau" prop 'show'
 
@@ -34,8 +42,8 @@ const AddBarangMasukModal = ({ show, handleClose, handleSave }) => {
     try {
       // Kita panggil 2 API sekaligus
       const [barangRes, supplierRes] = await Promise.all([
-        axios.get('http://localhost:5001/api/items'),
-        axios.get('http://localhost:5001/api/suppliers')
+        axios.get('/items'), // Removed hardcoded URL
+        axios.get('/suppliers') // Removed hardcoded URL
       ]);
       
       setListBarang(barangRes.data);
@@ -49,28 +57,32 @@ const AddBarangMasukModal = ({ show, handleClose, handleSave }) => {
     }
   };
 
-  const onSave = () => {
+  const onSave = async () => { // Make it async
     // Validasi
     if (!item_id || !supplier_id || !jumlah || parseInt(jumlah) <= 0) {
-      alert('Lengkapi semua field dan jumlah harus lebih dari 0.');
+      toast.error('Lengkapi semua field dan jumlah harus lebih dari 0.'); // Changed alert to toast.error
       return;
     }
 
-    // Kirim data dengan KEY yang BENAR (sesuai schema.prisma)
-    handleSave({
-      item_id: parseInt(item_id),
-      supplier_id: parseInt(supplier_id),
-      jumlah: parseInt(jumlah)
-    });
+    setIsSaving(true); // Set saving state
 
-    // Reset form
-    setItemId('');
-    setSupplierId('');
-    setJumlah('');
+    try {
+      // Kirim data dengan KEY yang BENAR (sesuai schema.prisma)
+      await handleSave({
+        item_id: parseInt(item_id),
+        supplier_id: parseInt(supplier_id),
+        jumlah: parseInt(jumlah)
+      });
+      // Parent will close modal on success, resetting form via useEffect
+    } catch (error) {
+      // Error is handled by toast.promise in parent, but we ensure saving state is reset
+    } finally {
+      setIsSaving(false); // Reset saving state
+    }
   };
 
   return (
-    <Modal show={show} onHide={handleClose} backdrop="static">
+    <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false}>
       <Modal.Header closeButton>
         <Modal.Title>Tambah Barang Masuk</Modal.Title>
       </Modal.Header>
@@ -85,7 +97,7 @@ const AddBarangMasukModal = ({ show, handleClose, handleSave }) => {
             <Form.Select 
               value={item_id} 
               onChange={(e) => setItemId(e.target.value)}
-              disabled={loading}
+              disabled={loading || isSaving} // Disable if saving or loading dropdowns
             >
               <option value="">{loading ? 'Memuat...' : 'Pilih Barang'}</option>
               
@@ -104,7 +116,7 @@ const AddBarangMasukModal = ({ show, handleClose, handleSave }) => {
             <Form.Select 
               value={supplier_id} 
               onChange={(e) => setSupplierId(e.target.value)}
-              disabled={loading}
+              disabled={loading || isSaving} // Disable if saving or loading dropdowns
             >
               <option value="">{loading ? 'Memuat...' : 'Pilih Supplier'}</option>
               
@@ -126,14 +138,15 @@ const AddBarangMasukModal = ({ show, handleClose, handleSave }) => {
               value={jumlah}
               onChange={(e) => setJumlah(e.target.value)}
               min="1"
+              disabled={isSaving} // Disable if saving
             />
           </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>Batal</Button>
-        <Button variant="primary" onClick={onSave} disabled={loading}>
-          Simpan
+        <Button variant="secondary" onClick={handleClose} disabled={isSaving}>Batal</Button>
+        <Button variant="primary" onClick={onSave} disabled={loading || isSaving}>
+          {isSaving ? 'Menyimpan...' : 'Simpan'}
         </Button>
       </Modal.Footer>
     </Modal>

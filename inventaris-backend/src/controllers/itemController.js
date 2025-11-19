@@ -27,6 +27,7 @@ exports.createItem = async (req, res) => {
       kondisi,
       jumlah_stok,
       sumber_dana,
+      rak,
     } = req.body;
 
     const stokAsInt = parseInt(jumlah_stok) || 0;
@@ -48,6 +49,7 @@ exports.createItem = async (req, res) => {
         kondisi,
         jumlah_stok: stokAsInt, // <- Gunakan yang sudah jadi angka
         sumber_dana,
+        rak,
       },
     });
     res.status(201).json(newItem);
@@ -70,6 +72,7 @@ exports.updateItem = async (req, res) => {
       kondisi,
       jumlah_stok,
       sumber_dana,
+      rak,
     } = req.body;
 
     const stokAsInt = parseInt(jumlah_stok) || 0;
@@ -92,6 +95,7 @@ exports.updateItem = async (req, res) => {
         kondisi,
         jumlah_stok: stokAsInt, // <- Gunakan yang sudah jadi angka
         sumber_dana,
+        rak,
       },
     });
     res.status(200).json(updatedItem);

@@ -15,7 +15,8 @@ model User {
   username  String   @unique
   password  String
   level     String   @default("manajemen") // "manajemen" or "gudang"
-  status    String   @default("Aktif") // <-- Tambahan untuk Kualitas Data
+  isActive  Boolean  @default(true)
+  deactivatedAt DateTime?
   
   // Relasi ke Order (Assignment)
   assignedOrders Order[]
@@ -39,6 +40,7 @@ model Item { // Ini adalah Data Barang
   jumlah_stok Int      @default(0)
   min_stok    Int      @default(5) // <-- Safety Stock
   sumber_dana String?
+  rak         String?  // <-- LOKASI RAK
   status      String   @default("Aktif")
 
   // Relasi

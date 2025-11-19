@@ -1,9 +1,7 @@
-// Lokasi: src/pages/HistoriPesananPage.jsx
-// (VERSI PERBAIKAN AKHIR - MENGHAPUS USECALLBACK)
-
-import React, { useState, useEffect, useCallback } from 'react'; // <-- Hapus useCallback dari sini
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Table, Button, Alert, Badge, Spinner, ButtonGroup, ToggleButton } from 'react-bootstrap';
+import toast from 'react-hot-toast';
 
 const HistoriPesananPage = () => {
   const [orders, setOrders] = useState([]);
@@ -11,65 +9,50 @@ const HistoriPesananPage = () => {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('active'); // 'active' atau 'archived'
 
-  // --- FUNGSI MENGAMBIL DATA (DIBUAT DENGAN CARA LAMA TAPI BENAR) ---
-  // Fungsi ini tidak lagi dibungkus useCallback
-  const fetchOrders = async (currentMode) => { // <-- 1. Fungsi menerima parameter
+  const fetchOrders = async (currentMode, isManualRefresh = false) => {
+    if (!loading) setLoading(true);
     try {
-      setLoading(true);
-      
-      // 2. Tentukan params berdasarkan parameter yang diterima
-      const params = {};
-      if (currentMode === 'archived') {
-        params.status = 'archived';
-      } else {
-        params.status = 'active'; 
-      }
-      
+      const params = { status: currentMode === 'archived' ? 'archived' : 'active' };
       const response = await axios.get('/orders', { params }); 
       setOrders(response.data);
       setError(null);
-      
-      console.log('view mode berakhir di:', currentMode, 'dengan data:', response.data.length); 
-
+      if (isManualRefresh) {
+        toast.success('Histori pesanan berhasil diperbarui!');
+      }
     } catch (err) {
       setError('Terjadi kesalahan saat mengambil histori pesanan.');
+      toast.error('Gagal memuat histori pesanan.');
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 3. useEffect memanggil fungsi dengan viewMode terbaru
   useEffect(() => {
-    // LOG DEBUG
-    console.log('fetchOrders dipanggil karena viewMode berubah');
-    // Panggil dengan state viewMode saat ini
     fetchOrders(viewMode); 
-  }, [viewMode]); // <-- HANYA bergantung pada viewMode (ini yang akan memicu fetch)
+  }, [viewMode]);
 
-  // --- LOGIKA AKSI (PERLU SEDIKIT PENYESUAIAN) ---
-  
   const handleArchive = async (orderId) => {
     if (window.confirm('Apakah Anda yakin ingin mengarsipkan pesanan ini?')) {
-      try {
-        await axios.post(`/orders/${orderId}/archive`);
-        alert('Pesanan diarsipkan.');
-        fetchOrders(viewMode); // <-- Panggil dengan mode saat ini
-      } catch (err) {
-        setError(err.response?.data?.error || 'Gagal mengarsipkan pesanan.');
-      }
+      const promise = axios.post(`/orders/${orderId}/archive`);
+      await toast.promise(promise, {
+        loading: 'Mengarsipkan pesanan...',
+        success: 'Pesanan berhasil diarsipkan.',
+        error: (err) => err.response?.data?.error || 'Gagal mengarsipkan pesanan.',
+      });
+      fetchOrders(viewMode);
     }
   };
   
   const handleUnarchive = async (orderId) => {
     if (window.confirm('Pulihkan pesanan ini ke daftar Selesai?')) {
-      try {
-        await axios.post(`/orders/${orderId}/unarchive`);
-        alert('Pesanan dipulihkan.');
-        fetchOrders(viewMode); // <-- Panggil dengan mode saat ini
-      } catch (err) {
-        setError(err.response?.data?.error || 'Gagal memulihkan pesanan.');
-      }
+      const promise = axios.post(`/orders/${orderId}/unarchive`);
+      await toast.promise(promise, {
+        loading: 'Memulihkan pesanan...',
+        success: 'Pesanan berhasil dipulihkan.',
+        error: (err) => err.response?.data?.error || 'Gagal memulihkan pesanan.',
+      });
+      fetchOrders(viewMode);
     }
   };
 
@@ -77,13 +60,21 @@ const HistoriPesananPage = () => {
     window.open(`/cetak/pesanan/${orderId}`, '_blank');
   };
 
-  const handleToggle = (newMode) => {
-    // Set state dulu
-    setViewMode(newMode);
-    // fetchOrders akan otomatis dipanggil oleh useEffect
+  if (loading && orders.length === 0) {
+    return (
+      <div className="content-card d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+        <Spinner animation="border" role="status" />
+      </div>
+    );
   }
 
-  // --- TAMPILAN (JSX) ---
+  if (error && orders.length === 0) {
+    return (
+      <div className="content-card">
+        <Alert variant="danger">{error}</Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="content-card">
@@ -92,13 +83,11 @@ const HistoriPesananPage = () => {
           <h2 className="section-title">Histori Pesanan</h2>
           <p className="section-subtitle">Monitor semua pesanan yang masuk dan selesai.</p>
         </div>
-        {/* Tombol Refresh sekarang memanggil 'fetchOrders' secara eksplisit */}
-        <Button className="btn-accent" onClick={() => fetchOrders(viewMode)} disabled={loading}>
+        <Button className="btn-accent" onClick={() => fetchOrders(viewMode, true)} disabled={loading}>
           {loading ? <Spinner as="span" animation="border" size="sm" /> : 'Refresh'}
         </Button>
       </div>
 
-      {/* --- TOMBOL FILTER BARU --- */}
       <ButtonGroup className="mb-3">
         <ToggleButton
           type="radio"
@@ -106,7 +95,7 @@ const HistoriPesananPage = () => {
           name="radio"
           value="active"
           checked={viewMode === 'active'}
-          onClick={() => handleToggle('active')}
+          onClick={() => setViewMode('active')}
         >
           Pesanan Aktif
         </ToggleButton>
@@ -116,18 +105,23 @@ const HistoriPesananPage = () => {
           name="radio"
           value="archived"
           checked={viewMode === 'archived'}
-          onClick={() => handleToggle('archived')}
+          onClick={() => setViewMode('archived')}
         >
           Lihat Arsip
         </ToggleButton>
       </ButtonGroup>
-      {/* --- AKHIR TOMBOL FILTER --- */}
 
-
-      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
       
-      {!loading && (
-        <Table responsive hover className="table-soft">
+      {!loading && orders.length === 0 ? (
+        <div className="text-center p-5 my-5 border-dashed">
+          <h4 className="mb-3">{viewMode === 'active' ? 'Tidak Ada Pesanan Aktif' : 'Arsip Kosong'}</h4>
+          <p className="text-light-2 mb-4">
+            {viewMode === 'active' ? 'Semua pesanan sudah selesai atau diarsipkan.' : 'Tidak ada pesanan yang diarsipkan saat ini.'}
+          </p>
+        </div>
+      ) : (
+        <Table responsive hover className="table-soft table-responsive-cards">
           <thead>
             <tr>
               <th>No. Pesanan</th>
@@ -139,48 +133,39 @@ const HistoriPesananPage = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.length > 0 ? (
-              orders.map((order) => (
-                <tr key={order.id}>
-                  <td>{order.nomor_pesanan}</td>
-                  <td>{order.nama_pemesan}</td>
-                  <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    {order.status === 'Pending' && <Badge bg="warning">Pending</Badge>}
-                    {order.status === 'Picked' && <Badge bg="success">Selesai</Badge>}
-                    {order.status === 'Archived' && <Badge bg="secondary">Diarsip</Badge>}
-                  </td>
-                  <td>{order._count.orderItems} Jenis Barang</td> 
-                  <td>
-                    {/* --- LOGIKA AKSI BERDASARKAN STATUS --- */}
-                    {order.status === 'Pending' && (
-                      <Badge bg="secondary">Menunggu diproses</Badge>
-                    )}
-                    {order.status === 'Picked' && (
-                      <>
-                        <Button variant="info" size="sm" className="me-2" onClick={() => handlePrint(order.id)}>
-                          Cetak
-                        </Button>
-                        <Button variant="danger" size="sm" onClick={() => handleArchive(order.id)}>
-                          X
-                        </Button>
-                      </>
-                    )}
-                    {order.status === 'Archived' && (
-                      <Button variant="warning" size="sm" onClick={() => handleUnarchive(order.id)}>
-                        Pulihkan
+            {orders.map((order) => (
+              <tr key={order.id}>
+                <td data-label="No. Pesanan">{order.nomor_pesanan}</td>
+                <td data-label="Nama Pemesan">{order.nama_pemesan}</td>
+                <td data-label="Tgl Pesan">{new Date(order.createdAt).toLocaleDateString()}</td>
+                <td data-label="Status">
+                  {order.status === 'Pending' && <Badge bg="warning">Pending</Badge>}
+                  {order.status === 'Picked' && <Badge bg="success">Selesai</Badge>}
+                  {order.status === 'Archived' && <Badge bg="secondary">Diarsip</Badge>}
+                </td>
+                <td data-label="Jumlah Item">{order._count.orderItems} Jenis Barang</td> 
+                <td data-label="Aksi">
+                  {order.status === 'Pending' && (
+                    <Badge bg="secondary">Menunggu diproses</Badge>
+                  )}
+                  {order.status === 'Picked' && (
+                    <>
+                      <Button variant="info" size="sm" className="me-2" onClick={() => handlePrint(order.id)}>
+                        Cetak
                       </Button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center">
-                  {viewMode === 'active' ? 'Belum ada pesanan aktif.' : 'Arsip kosong.'}
+                      <Button variant="danger" size="sm" onClick={() => handleArchive(order.id)}>
+                        X
+                      </Button>
+                    </>
+                  )}
+                  {order.status === 'Archived' && (
+                    <Button variant="warning" size="sm" onClick={() => handleUnarchive(order.id)}>
+                      Pulihkan
+                    </Button>
+                  )}
                 </td>
               </tr>
-            )}
+            ))}
           </tbody>
         </Table>
       )}

@@ -64,6 +64,11 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Username atau Password salah.' });
     }
 
+    // Cek apakah user aktif
+    if (!user.isActive) {
+      return res.status(403).json({ error: 'Akun Anda telah dinonaktifkan.' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -106,7 +111,9 @@ exports.getAllUsers = async (req, res) => {
         id: true,
         nama: true,
         username: true,
-        level: true
+        level: true,
+        isActive: true,
+        deactivatedAt: true,
       },
       orderBy: {
         id: 'asc'
@@ -119,10 +126,68 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+// --- FUNGSI BARU UNTUK UPDATE STATUS USER ---
+exports.updateUserStatus = async (req, res) => {
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  if (typeof isActive !== 'boolean') {
+    return res.status(400).json({ error: 'Status "isActive" harus berupa boolean.' });
+  }
+
+  try {
+    const userToUpdate = await prisma.user.findUnique({
+      where: { id: parseInt(id, 10) },
+    });
+
+    if (!userToUpdate) {
+      return res.status(404).json({ error: 'User tidak ditemukan.' });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id, 10) },
+      data: {
+        isActive: isActive,
+        deactivatedAt: isActive ? null : new Date(),
+      },
+    });
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("--- GAGAL UPDATE STATUS USER ---", error);
+    res.status(500).json({ error: 'Gagal memperbarui status user.' });
+  }
+};
+
+// --- FUNGSI BARU UNTUK MENGAMBIL USER GUDANG AKTIF ---
+exports.getWarehouseUsers = async (req, res) => {
+  try {
+    const warehouseUsers = await prisma.user.findMany({
+      where: {
+        level: 'gudang',
+        isActive: true,
+      },
+      select: {
+        id: true,
+        nama: true,
+      },
+      orderBy: {
+        nama: 'asc',
+      },
+    });
+    res.status(200).json(warehouseUsers);
+  } catch (error) {
+    console.error("--- GAGAL MENGAMBIL USER GUDANG ---", error);
+    res.status(500).json({ error: 'Gagal mengambil data user gudang.' });
+  }
+};
+
 
 // --- PASTIKAN EKSPORNYA LENGKAP ---
 module.exports = {
   register: exports.register,
   login: exports.login,
-  getAllUsers: exports.getAllUsers
+  getAllUsers: exports.getAllUsers,
+  updateUserStatus: exports.updateUserStatus,
+  getWarehouseUsers: exports.getWarehouseUsers
 };

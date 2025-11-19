@@ -31,8 +31,11 @@ router.post('/:id/complete', protect, authorize('manajemen', 'gudang'), orderCon
 // Untuk Admin (Tombol "X")
 router.post('/:id/archive', protect, authorize('manajemen'), orderController.archiveOrder);
 
-// --- RUTE BARU DI SINI ---
 // URL: POST /api/orders/:id/unarchive (Pulihkan)
 router.post('/:id/unarchive', protect, authorize('manajemen'), orderController.unarchiveOrder);
+
+// --- RUTE BARU UNTUK ASSIGNMENT ---
+// URL: POST /api/orders/:id/assign
+router.post('/:id/assign', protect, authorize('manajemen'), orderController.assignPicker);
 
 module.exports = router;

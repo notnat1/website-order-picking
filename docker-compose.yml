@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./inventaris-backend # Path to your backend's Dockerfile
+      dockerfile: Dockerfile
+    container_name: inventaris_backend_app
+    restart: always
+    ports:
+      - "5001:5001" # Expose backend port to host
+    env_file:
+      - ./inventaris-backend/.env # Load backend-specific environment variables
+    environment:
+      # These variables can also be in .env. We explicitly set the DB host here.
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 5001
+    depends_on:
+      - db # Backend depends on the database service
+
+  frontend:
+    build:
+      context: ./inventaris-frontend # Path to your frontend's Dockerfile
+      dockerfile: Dockerfile
+    container_name: inventaris_frontend_app
+    restart: always
+    ports:
+      - "80:80" # Frontend (Nginx) listens on port 80, expose to host port 80
+      # You might use a different host port if Nginx is already running on port 80 on your VPS
+      # For example: - "8080:80"
+    environment:
+      # This variable is used during the frontend build process
+      VITE_API_BASE_URL: /api
+    depends_on:
+      - backend # Frontend depends on the backend service for API calls
+
+  db:
+    image: mysql:8.0 # Use MySQL 8.0 image (or your preferred version)
+    container_name: inventaris_mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # Defined in root .env file
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306" # Optional: Expose DB port if you need to access it from host
+    volumes:
+      - db_data:/var/lib/mysql # Persistent data storage for the database
+
+volumes:
+  db_data: {} # Defines the named volume for database persistence

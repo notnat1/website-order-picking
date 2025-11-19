@@ -63,7 +63,8 @@ exports.getOrderDetail = async (req, res) => {
           include: {
             item: true
           }
-        }
+        },
+        picker: true // Include picker data
       }
     });
     if (!order) {
@@ -202,6 +203,56 @@ exports.unarchiveOrder = async (req, res) => {
   } catch (error) {
     console.error(`--- GAGAL MEMULIHKAN ORDER ${id} ---`, error);
     res.status(500).json({ error: error.message });
+  }
+};
+
+// --- 8. FUNGSI BARU: Menugaskan Picker ke Order ---
+exports.assignPicker = async (req, res) => {
+  const { id } = req.params; // orderId
+  const { pickerId } = req.body;
+
+  if (!pickerId) {
+    return res.status(400).json({ error: 'ID Picker harus disertakan.' });
+  }
+
+  try {
+    // 1. Validasi picker
+    const picker = await prisma.user.findUnique({
+      where: { id: parseInt(pickerId, 10) },
+    });
+
+    if (!picker || picker.level !== 'gudang' || !picker.isActive) {
+      return res.status(404).json({ error: 'User gudang tidak valid atau tidak aktif.' });
+    }
+
+    // 2. Validasi order
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(id, 10) },
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order tidak ditemukan.' });
+    }
+
+    if (order.status !== 'Pending') {
+      return res.status(400).json({ error: 'Hanya order dengan status "Pending" yang bisa ditugaskan.' });
+    }
+
+    // 3. Update order
+    const updatedOrder = await prisma.order.update({
+      where: { id: parseInt(id, 10) },
+      data: {
+        picker_id: parseInt(pickerId, 10),
+      },
+      include: {
+        picker: true, // Sertakan data picker di response
+      },
+    });
+
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    console.error(`--- GAGAL MENUGASKAN PICKER (ORDER ID: ${id}) ---`, error);
+    res.status(500).json({ error: 'Gagal menugaskan picker.' });
   }
 };
 

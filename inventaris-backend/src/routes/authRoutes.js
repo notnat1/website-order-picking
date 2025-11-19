@@ -19,4 +19,10 @@ router.post('/login', authController.login);
 // Hanya 'manajemen' yang bisa melihat daftar user
 router.get('/users', protect, authorize('manajemen'), authController.getAllUsers);
 
+// Rute baru untuk update status user
+router.patch('/users/:id/status', protect, authorize('manajemen'), authController.updateUserStatus);
+
+// Rute baru untuk mendapatkan user gudang yang aktif
+router.get('/warehouse-users', protect, authorize('manajemen'), authController.getWarehouseUsers);
+
 module.exports = router;

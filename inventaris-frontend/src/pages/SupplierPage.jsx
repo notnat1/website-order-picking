@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Alert } from 'react-bootstrap';
+import { Table, Button, Alert, Spinner } from 'react-bootstrap';
+import toast from 'react-hot-toast';
 import AddSupplierModal from '../components/modals/AddSupplierModal';
 import EditSupplierModal from '../components/modals/EditSupplierModal';
 
 const SupplierPage = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Ini error halaman
+  const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   const fetchSuppliers = async () => {
     try {
-      setLoading(true);
-      const response = await axios.get('/suppliers'); // Path sudah benar
+      const response = await axios.get('/suppliers');
       setSuppliers(response.data);
       setError(null);
     } catch (err) {
       setError('Terjadi kesalahan saat mengambil data supplier.');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (loading) setLoading(false);
     }
   };
 
@@ -43,62 +43,78 @@ const SupplierPage = () => {
     setShowEditModal(true);
   };
 
-  // --- PERBAIKAN DI SINI ---
   const handleSaveSupplier = async (newSupplier) => {
-    try {
-      await axios.post('/suppliers', newSupplier);
-      fetchSuppliers();
-      handleCloseAddModal();
-    } catch (err) {
-      // Lempar error agar bisa ditangkap oleh Modal
-      throw new Error(err.response?.data?.error || 'Gagal menyimpan supplier baru.');
-    }
+    const promise = axios.post('/suppliers', newSupplier);
+    await toast.promise(promise, {
+      loading: 'Menyimpan supplier...',
+      success: 'Supplier berhasil ditambahkan!',
+      error: (err) => err.response?.data?.error || 'Gagal menyimpan supplier.',
+    });
+    fetchSuppliers();
+    handleCloseAddModal();
   };
 
-  // --- PERBAIKAN DI SINI ---
   const handleUpdateSupplier = async (updatedSupplier) => {
-    try {
-      await axios.put(`/suppliers/${updatedSupplier.id}`, updatedSupplier);
-      fetchSuppliers();
-      handleCloseEditModal();
-    } catch (err) {
-      // Lempar error agar bisa ditangkap oleh Modal
-      throw new Error(err.response?.data?.error || 'Gagal mengupdate supplier.');
-    }
+    const promise = axios.put(`/suppliers/${updatedSupplier.id}`, updatedSupplier);
+    await toast.promise(promise, {
+      loading: 'Memperbarui supplier...',
+      success: 'Supplier berhasil diperbarui!',
+      error: (err) => err.response?.data?.error || 'Gagal mengupdate supplier.',
+    });
+    fetchSuppliers();
+    handleCloseEditModal();
   };
 
   const handleDeleteSupplier = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menonaktifkan supplier ini?')) {
-      try {
-        await axios.delete(`/suppliers/${id}`);
-        fetchSuppliers();
-      } catch (err) {
-        setError('Gagal menonaktifkan supplier.');
-        console.error("Gagal menghapus supplier:", err);
-      }
+      const promise = axios.delete(`/suppliers/${id}`);
+      await toast.promise(promise, {
+        loading: 'Menonaktifkan supplier...',
+        success: 'Supplier berhasil dinonaktifkan.',
+        error: (err) => err.response?.data?.error || 'Gagal menonaktifkan supplier.',
+      });
+      fetchSuppliers();
     }
   };
-  // --- AKHIR PERBAIKAN ---
 
-  // ... (JSX return tidak berubah)
+  if (loading) {
+    return (
+      <div className="content-card d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+        <Spinner animation="border" role="status" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="content-card">
+        <Alert variant="danger">{error}</Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="content-card">
-      
       <div className="section-header">
         <div>
-          <div className="section-title">Data Supplier</div>
-          <div className="section-subtitle">Daftar mitra penyedia barang</div>
+          <h2 className="section-title">Data Supplier</h2>
+          <p className="section-subtitle">Daftar mitra penyedia barang</p>
         </div>
         <Button className="btn-accent" onClick={handleShowAddModal}>
           + Tambah Supplier
         </Button>
       </div>
       
-      {loading && <p>Loading...</p>}
-      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
-      
-      {!loading && !error && (
-        <Table responsive hover className="table-soft">
+      {suppliers.length === 0 ? (
+        <div className="text-center p-5 my-5 border-dashed">
+          <h4 className="mb-3">Belum Ada Supplier</h4>
+          <p className="text-light-2 mb-4">Data supplier masih kosong. Silakan tambahkan supplier baru.</p>
+          <Button className="btn-accent" onClick={handleShowAddModal}>
+            + Tambah Supplier
+          </Button>
+        </div>
+      ) : (
+        <Table responsive hover className="table-soft table-responsive-cards">
           <thead>
             <tr>
               <th>No</th>
@@ -109,24 +125,18 @@ const SupplierPage = () => {
             </tr>
           </thead>
           <tbody>
-            {suppliers.length > 0 ? (
-              suppliers.map((supplier, index) => (
-                <tr key={supplier.id}>
-                  <td>{index + 1}</td>
-                  <td>{supplier.nama_supplier}</td>
-                  <td>{supplier.alamat}</td>
-                  <td>{supplier.telepon}</td>
-                  <td>
-                    <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(supplier)}>Edit</Button>
-                    <Button variant="danger" size="sm" onClick={() => handleDeleteSupplier(supplier.id)}>Hapus</Button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center">Data supplier masih kosong.</td>
+            {suppliers.map((supplier, index) => (
+              <tr key={supplier.id}>
+                <td data-label="No">{index + 1}</td>
+                <td data-label="Nama Supplier">{supplier.nama_supplier}</td>
+                <td data-label="Alamat">{supplier.alamat}</td>
+                <td data-label="Telepon">{supplier.telepon}</td>
+                <td data-label="Aksi">
+                  <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(supplier)}>Edit</Button>
+                  <Button variant="danger" size="sm" onClick={() => handleDeleteSupplier(supplier.id)}>Hapus</Button>
+                </td>
               </tr>
-            )}
+            ))}
           </tbody>
         </Table>
       )}

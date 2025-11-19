@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 // Buat komponen kecil untuk kartu statistik
 const StatCard = ({ title, value, unit, bg, error }) => ( // <-- Tambah error prop
@@ -24,6 +25,7 @@ const DashboardPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth(); // Get user from AuthContext
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -48,6 +50,7 @@ const DashboardPage = () => {
       <div className="section-header">
         <div>
           <h2 className="section-title">Dashboard</h2>
+          {user && <p className="section-subtitle">Hello, {user.nama}!</p>} {/* Add greeting */}
           <p className="section-subtitle">Selamat datang di sistem Order Picking.</p>
         </div>
       </div>

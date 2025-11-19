@@ -1,34 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { Nav } from 'react-bootstrap'; 
+import { Nav } from 'react-bootstrap';
+import { List as HamburgerIcon, X as CloseIcon } from 'react-bootstrap-icons';
 import { useAuth } from '../context/AuthContext';
-import AnimatedLogoutButton from './AnimatedLogoutButton.jsx'; // Sesuaikan path jika perlu
+import AnimatedLogoutButton from './AnimatedLogoutButton.jsx';
 
-// Ini adalah "template" utama kita
 const Layout = () => {
-  const { user, logout } = useAuth(); 
+  const { user, logout } = useAuth();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!isSidebarOpen);
+  };
+
+  // Close sidebar when a NavLink is clicked on mobile
+  const handleNavLinkClick = () => {
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isSidebarOpen]);
+
   return (
-    <div className="app-wrapper">
-      
+    <div className={`app-wrapper ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      <div className="sidebar-overlay" onClick={toggleSidebar}></div>
+
       {/* 1. SIDEBAR */}
       <nav className="sidebar">
-        
-        {/* ---- GRUP KONTEN ATAS ---- */}
-        <div> 
+        <div>
           <div className="sidebar-header">
-            Inventory
+            <div className="sidebar-logo">
+              <img src="/icon-website.png" alt="Company Logo" />
+            </div>
+            <button className="sidebar-close-btn" onClick={toggleSidebar}>
+              <CloseIcon size={24} />
+            </button>
           </div>
-          
-          {/* Info User */}
+
           {user && (
             <div style={{
-              padding: '10px 16px', 
-              marginBottom: '20px', 
+              padding: '10px 16px',
+              marginBottom: '20px',
               backgroundColor: 'var(--bg-dark-3)',
               borderRadius: '8px',
               textAlign: 'center'
@@ -40,40 +68,31 @@ const Layout = () => {
             </div>
           )}
 
-          {/* Link Navigasi */}
           <Nav className="flex-column">
-            <Nav.Link as={NavLink} to="/">Dashboard</Nav.Link>
+            <Nav.Link as={NavLink} to="/" onClick={handleNavLinkClick}>Dashboard</Nav.Link>
             
-            {/* --- MULAI LOGIKA LEVEL USER (URUTAN BARU) --- */}
-            
-            {/* 1. Menu utama untuk 'manajemen' */}
             {user && user.level === 'manajemen' && (
               <>
-                <Nav.Link as={NavLink} to="/barang">Data Barang</Nav.Link>
-                <Nav.Link as={NavLink} to="/supplier">Data Supplier</Nav.Link>
-                <Nav.Link as={NavLink} to="/barang-masuk">Barang Masuk</Nav.Link>
-                <Nav.Link as={NavLink} to="/buat-pesanan">Buat Pesanan</Nav.Link>
-                <Nav.Link as={NavLink} to="/histori-pesanan">Histori Pesanan</Nav.Link>
+                <Nav.Link as={NavLink} to="/barang" onClick={handleNavLinkClick}>Data Barang</Nav.Link>
+                <Nav.Link as={NavLink} to="/supplier" onClick={handleNavLinkClick}>Data Supplier</Nav.Link>
+                <Nav.Link as={NavLink} to="/barang-masuk" onClick={handleNavLinkClick}>Barang Masuk</Nav.Link>
+                <Nav.Link as={NavLink} to="/buat-pesanan" onClick={handleNavLinkClick}>Buat Pesanan</Nav.Link>
               </>
             )}
             
-            {/* 2. Menu 'Tugas Picking' (muncul di sini) */}
             {user && (user.level === 'manajemen' || user.level === 'gudang') && (
-              <Nav.Link as={NavLink} to="/tugas-picking">Tugas Picking</Nav.Link>
+              <Nav.Link as={NavLink} to="/tugas-picking" onClick={handleNavLinkClick}>Tugas Picking</Nav.Link>
             )}
 
-            {/* 3. Menu 'Manajemen User' (pindah ke bawah) */}
             {user && user.level === 'manajemen' && (
-              <Nav.Link as={NavLink} to="/manajemen-user">Manajemen User</Nav.Link> 
+              <>
+                <Nav.Link as={NavLink} to="/histori-pesanan" onClick={handleNavLinkClick}>Histori Pesanan</Nav.Link>
+                <Nav.Link as={NavLink} to="/manajemen-user" onClick={handleNavLinkClick}>Manajemen User</Nav.Link> 
+              </>
             )}
-            
-            {/* --- SELESAI LOGIKA LEVEL USER --- */}
           </Nav>
         </div>
-        {/* ---- AKHIR GRUP KONTEN ATAS ---- */}
 
-
-        {/* ---- GRUP KONTEN BAWAH (LOGOUT) ---- */}
         <div style={{ 
           marginTop: 'auto', 
           paddingTop: '20px', 
@@ -83,26 +102,20 @@ const Layout = () => {
         }}>
           <AnimatedLogoutButton onClick={handleLogout} />
         </div>
-        
       </nav>
 
-      {/* 2. AREA KONTEN (Wrapper Kanan) */}
+      {/* 2. AREA KONTEN */}
       <div className="content-wrapper">
-        
-        <header className="main-header" style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center' 
-        }}>
-          <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>
-            Home
-          </Link>
+        <header className="main-header">
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+            <HamburgerIcon size={28} />
+          </button>
+          <h1 className="header-title">Dashboard</h1>
+          <Link to="/" className="desktop-home-link">Home</Link>
         </header>
-
         <main className="page-content">
           <Outlet /> 
         </main>
-        
       </div>
     </div>
   );

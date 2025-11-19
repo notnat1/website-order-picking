@@ -1,9 +1,7 @@
-// Lokasi file: src/pages/BarangMasukPage.jsx
-// (VERSI ROMBAK TOTAL)
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Alert } from 'react-bootstrap'; // Hapus Container
+import { Table, Button, Alert, Spinner } from 'react-bootstrap';
+import toast from 'react-hot-toast';
 import AddBarangMasukModal from '../components/modals/AddBarangMasukModal';
 
 const BarangMasukPage = () => {
@@ -12,18 +10,16 @@ const BarangMasukPage = () => {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // --- SEMUA LOGIKA LAMA KAMU (AMAN) ---
   const fetchBarangMasuk = async () => {
     try {
-      setLoading(true);
-      const response = await axios.get('http://localhost:5001/api/barang-masuk');
+      const response = await axios.get('/barang-masuk');
       setBarangMasuk(response.data);
       setError(null);
     } catch (err) {
       setError('Terjadi kesalahan saat mengambil data barang masuk.');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (loading) setLoading(false);
     }
   };
 
@@ -35,42 +31,56 @@ const BarangMasukPage = () => {
   const handleShowModal = () => setShowModal(true);
 
   const handleSaveBarangMasuk = async (data) => {
-    try {
-      await axios.post('http://localhost:5001/api/barang-masuk', data);
-      fetchBarangMasuk();
-      handleCloseModal();
-    } catch (err) {
-      const message = err.response?.data?.error || 'Gagal menyimpan barang masuk.';
-      setError(message);
-      console.error('Gagal menyimpan barang masuk:', err);
-    }
+    const promise = axios.post('/barang-masuk', data);
+    
+    await toast.promise(promise, {
+      loading: 'Menyimpan data...',
+      success: 'Data barang masuk berhasil ditambahkan!',
+      error: (err) => err.response?.data?.error || 'Gagal menyimpan data.',
+    });
+
+    fetchBarangMasuk();
+    handleCloseModal();
   };
-  // --- AKHIR DARI LOGIKA LAMA ---
 
+  if (loading) {
+    return (
+      <div className="content-card d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+        <Spinner animation="border" role="status" />
+      </div>
+    );
+  }
 
-  // --- INI BAGIAN JSX YANG DIROMBAK ---
+  if (error) {
+    return (
+      <div className="content-card">
+        <Alert variant="danger">{error}</Alert>
+      </div>
+    );
+  }
+
   return (
-    // 1. Ganti <Container> dengan <div className="content-card">
     <div className="content-card">
-
-      {/* 2. Gunakan "section-header" standar */}
       <div className="section-header">
         <div>
           <h2 className="section-title">Data Barang Masuk</h2>
           <p className="section-subtitle">Histori penerimaan barang dari supplier.</p>
         </div>
-        {/* 3. Gunakan "btn-accent" */}
         <Button className="btn-accent" onClick={handleShowModal}>
           + Tambah Barang Masuk
         </Button>
       </div>
 
-      {loading && <p>Loading...</p>}
-      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
-
-      {!loading && !error && (
-        // 4. Gunakan "table-soft"
-        <Table responsive hover className="table-soft">
+      {barangMasuk.length === 0 ? (
+        <div className="text-center p-5 my-5 border-dashed">
+          <h4 className="mb-3">Belum Ada Barang Masuk</h4>
+          <p className="text-light-2 mb-4">Data barang masuk masih kosong. Silakan tambahkan data baru.</p>
+          <Button className="btn-accent" onClick={handleShowModal}>
+            + Tambah Barang Masuk
+          </Button>
+        </div>
+      ) : (
+        <Table responsive hover className="table-soft table-responsive-cards">
           <thead>
             <tr>
               <th>No</th>
@@ -81,22 +91,15 @@ const BarangMasukPage = () => {
             </tr>
           </thead>
           <tbody>
-            {barangMasuk.length > 0 ? (
-              barangMasuk.map((bm, index) => (
-                  <tr key={bm.id}>
-                    {/* 5. Pastikan key sudah benar */}
-                    <td>{index + 1}</td>
-                    <td>{bm.item.nama_barang}</td>
-                    <td>{bm.supplier.nama_supplier}</td>
-                    <td>{bm.jumlah}</td>
-                    <td>{new Date(bm.tanggal_masuk).toLocaleDateString()}</td>
-                  </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center">Data barang masuk masih kosong.</td>
+            {barangMasuk.map((bm, index) => (
+              <tr key={bm.id}>
+                <td data-label="No">{index + 1}</td>
+                <td data-label="Nama Barang">{bm.item.nama_barang}</td>
+                <td data-label="Supplier">{bm.supplier.nama_supplier}</td>
+                <td data-label="Jumlah">{bm.jumlah}</td>
+                <td data-label="Tanggal Masuk">{new Date(bm.tanggal_masuk).toLocaleDateString()}</td>
               </tr>
-            )}
+            ))}
           </tbody>
         </Table>
       )}

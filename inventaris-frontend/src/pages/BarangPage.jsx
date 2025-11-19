@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Alert } from 'react-bootstrap';
+import { Table, Button, Alert, Spinner } from 'react-bootstrap';
+import toast from 'react-hot-toast';
 import AddBarangModal from '../components/AddBarangModal';
 import EditBarangModal from '../components/EditBarangModal';
 
 const BarangPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Ini untuk error Halaman
+  const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
   const fetchItems = async () => {
+    // No need to set loading true here if it's only called on initial load
+    // and after actions that have their own loading indicators (toasts).
     try {
-      setLoading(true);
       const response = await axios.get('/items');
       setItems(response.data);
       setError(null);
@@ -22,7 +24,8 @@ const BarangPage = () => {
       setError('Terjadi kesalahan saat mengambil data barang.');
       console.error(err);
     } finally {
-      setLoading(false);
+      // Only set loading to false on the initial load
+      if (loading) setLoading(false);
     }
   };
 
@@ -43,44 +46,67 @@ const BarangPage = () => {
     setShowEditModal(true);
   };
 
-  // --- PERBAIKAN DI SINI ---
   const handleSaveBarang = async (newItem) => {
-    try {
-      await axios.post('/items', newItem);
-      handleCloseAddModal();
-      fetchItems(); // Refresh data
-    } catch (err) {
-      // Lempar error agar bisa ditangkap oleh Modal
-      throw new Error(err.response?.data?.error || 'Gagal menyimpan data barang baru.');
-    }
+    const promise = axios.post('/items', newItem);
+
+    await toast.promise(promise, {
+      loading: 'Menyimpan barang...',
+      success: 'Barang berhasil ditambahkan!',
+      error: (err) => err.response?.data?.error || 'Gagal menyimpan data.',
+    });
+
+    handleCloseAddModal();
+    fetchItems(); // Refresh data
   };
 
-  // --- PERBAIKAN DI SINI ---
   const handleUpdateBarang = async (updatedItem) => {
-    try {
-      await axios.put(`/items/${updatedItem.id}`, updatedItem);
-      handleCloseEditModal();
-      fetchItems(); // Refresh data
-    } catch (err) {
-      // Lempar error agar bisa ditangkap oleh Modal
-      throw new Error(err.response?.data?.error || 'Gagal memperbarui data barang.');
-    }
+    const promise = axios.put(`/items/${updatedItem.id}`, updatedItem);
+
+    await toast.promise(promise, {
+      loading: 'Memperbarui barang...',
+      success: 'Barang berhasil diperbarui!',
+      error: (err) => err.response?.data?.error || 'Gagal memperbarui data.',
+    });
+    
+    handleCloseEditModal();
+    fetchItems(); // Refresh data
   };
 
   const handleDeleteBarang = async (itemId) => {
     if (window.confirm('Apakah Anda yakin ingin menonaktifkan barang ini?')) {
-      try {
-        await axios.delete(`/items/${itemId}`);
-        fetchItems(); // Refresh data
-      } catch (err) {
-        setError('Gagal menonaktifkan data barang.');
-        console.error(err);
-      }
+      const promise = axios.delete(`/items/${itemId}`);
+
+      await toast.promise(promise, {
+        loading: 'Menonaktifkan barang...',
+        success: 'Barang berhasil dinonaktifkan!',
+        error: (err) => err.response?.data?.error || 'Gagal menonaktifkan data.',
+      });
+
+      fetchItems(); // Refresh data
     }
   };
-  // --- AKHIR PERBAIKAN ---
 
-  // ... (JSX return tidak berubah)
+  // 1. Loading State
+  if (loading) {
+    return (
+      <div className="content-card d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
+  }
+
+  // 2. Error State
+  if (error) {
+    return (
+      <div className="content-card">
+        <Alert variant="danger">{error}</Alert>
+      </div>
+    );
+  }
+
+  // 3. Main Content
   return (
     <div className="content-card"> 
       
@@ -94,42 +120,44 @@ const BarangPage = () => {
         </Button>
       </div>
       
-      {loading && <p>Loading...</p>}
-      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
-      
-      {!loading && !error && (
-        <Table responsive hover className="table-soft">
-          {/* ... isi tabel ... */}
+      {/* 3a. Empty State */}
+      {items.length === 0 ? (
+        <div className="text-center p-5 my-5 border-dashed">
+          <h4 className="mb-3">Belum Ada Barang</h4>
+          <p className="text-light-2 mb-4">Data barang masih kosong. Silakan tambahkan barang baru untuk memulai.</p>
+          <Button className="btn-accent" onClick={handleShowAddModal}>
+            + Tambah Barang
+          </Button>
+        </div>
+      ) : (
+        // 3b. Content State (Table)
+        <Table responsive hover className="table-soft table-responsive-cards">
           <thead>
             <tr>
               <th>No</th>
               <th>Nama Barang</th>
               <th>Kondisi</th>
               <th>Lokasi</th>
+              <th>Rak</th>
               <th>Stok</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {items.length > 0 ? (
-              items.map((item, index) => (
-                <tr key={item.id}>
-                  <td>{index + 1}</td>
-                  <td>{item.nama_barang}</td>
-                  <td>{item.kondisi}</td>
-                  <td>{item.lokasi}</td>
-                  <td>{item.jumlah_stok}</td>
-                  <td>
-                    <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(item)}>Edit</Button>
-                    <Button variant="danger" size="sm" onClick={() => handleDeleteBarang(item.id)}>Hapus</Button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center">Data barang masih kosong.</td>
+            {items.map((item, index) => (
+              <tr key={item.id}>
+                <td data-label="No">{index + 1}</td>
+                <td data-label="Nama Barang">{item.nama_barang}</td>
+                <td data-label="Kondisi">{item.kondisi}</td>
+                <td data-label="Lokasi">{item.lokasi}</td>
+                <td data-label="Rak">{item.rak}</td>
+                <td data-label="Stok">{item.jumlah_stok}</td>
+                <td data-label="Aksi">
+                  <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(item)}>Edit</Button>
+                  <Button variant="danger" size="sm" onClick={() => handleDeleteBarang(item.id)}>Hapus</Button>
+                </td>
               </tr>
-            )}
+            ))}
           </tbody>
         </Table>
       )}

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `item` ADD COLUMN `rak` VARCHAR(191) NULL;

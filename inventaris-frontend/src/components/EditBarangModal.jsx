@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap'; // <-- Tambah Alert
+import { Modal, Button, Form } from 'react-bootstrap';
+import toast from 'react-hot-toast';
 
 const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
   const [nama_barang, setNamaBarang] = useState('');
@@ -7,11 +8,9 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
   const [kondisi, setKondisi] = useState('');
   const [spesifikasi, setSpesifikasi] = useState('');
   const [lokasi, setLokasi] = useState('');
-  const [sumber_dana, setSumberDana] = useState('');
-
-  // --- PERBAIKAN DI SINI ---
-  const [isSaving, setIsSaving] = useState(false);
-  const [modalError, setModalError] = useState(null);
+    const [sumber_dana, setSumberDana] = useState('');
+    const [rak, setRak] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
   
   // useEffect ini PENTING untuk mengisi form
   useEffect(() => {
@@ -22,53 +21,45 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
       setSpesifikasi(item.spesifikasi || '');
       setLokasi(item.lokasi || '');
       setSumberDana(item.sumber_dana || '');
+      setRak(item.rak || '');
     }
     
-    // Saat modal berganti item (atau ditutup lalu dibuka), reset error
-    if (show) {
-        setModalError(null);
+    if (!show) {
         setIsSaving(false);
     }
-  }, [item, show]); // "Pantau" prop 'item' dan 'show'
+  }, [item, show]);
 
-  const onSave = async () => { // <-- Buat jadi async
+  const onSave = async () => {
     // Validasi Frontend dulu
     if (!nama_barang || jumlah_stok === '' || !kondisi) {
-      setModalError('Nama Barang, Stok, dan Kondisi tidak boleh kosong.');
+      toast.error('Nama Barang, Stok, dan Kondisi tidak boleh kosong.');
       return;
     }
 
     const stokInt = parseInt(jumlah_stok, 10);
-    if (stokInt < 0) {
-      setModalError('Jumlah stok tidak boleh negatif.');
+    if (isNaN(stokInt) || stokInt < 0) {
+      toast.error('Jumlah stok harus angka positif.');
       return;
     }
     
     setIsSaving(true);
-    setModalError(null);
 
     try {
-      // Kirim object
       await handleSave({
         id: item.id, // <-- PENTING: Sertakan ID untuk update
-        nama_barang: nama_barang,
+        nama_barang,
         jumlah_stok: stokInt,
-        kondisi: kondisi,
-        spesifikasi: spesifikasi,
-        lokasi: lokasi,
-        sumber_dana: sumber_dana
+        kondisi,
+        spesifikasi,
+        lokasi,
+        sumber_dana,
+        rak
       });
-      
-      // Jika handleSave SUKSES, Parent (BarangPage) akan menutup modal.
-      
     } catch (error) {
-      // Jika handleSave GAGAL (throw error), tangkap di sini
-      setModalError(error.message);
-      // JANGAN RESET FORM
+      // Error already handled by toast.promise in parent
     } finally {
       setIsSaving(false);
     }
-    // --- AKHIR PERBAIKAN ---
   };
 
   return (
@@ -77,12 +68,7 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
         <Modal.Title>Edit Barang</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-
-        {/* Tampilkan error di DALAM modal */}
-        {modalError && <Alert variant="danger">{modalError}</Alert>}
-
         <Form>
-          {/* ... (Semua Form.Group SAMA PERSIS dengan AddBarangModal) ... */}
           <Form.Group className="mb-3" controlId="editBarangName">
             <Form.Label>Nama Barang <span className="text-danger">*</span></Form.Label>
             <Form.Control 
@@ -91,6 +77,7 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               value={nama_barang}
               onChange={(e) => setNamaBarang(e.target.value)}
               required
+              disabled={isSaving}
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="editBarangStock">
@@ -100,8 +87,9 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               placeholder="Masukkan jumlah stok" 
               value={jumlah_stok}
               onChange={(e) => setJumlahStok(e.target.value)}
-              min="0" // <-- Ini juga penting
+              min="0"
               required
+              disabled={isSaving}
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="editBarangKondisi">
@@ -112,6 +100,7 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               value={kondisi}
               onChange={(e) => setKondisi(e.target.value)}
               required
+              disabled={isSaving}
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="editBarangSpesifikasi">
@@ -121,6 +110,7 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               placeholder="Contoh: Kayu Jati, Plastik" 
               value={spesifikasi}
               onChange={(e) => setSpesifikasi(e.target.value)}
+              disabled={isSaving}
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="editBarangLokasi">
@@ -130,6 +120,17 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               placeholder="Contoh: Gudang A, Ruang Kelas X" 
               value={lokasi}
               onChange={(e) => setLokasi(e.target.value)}
+              disabled={isSaving}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="editBarangRak">
+            <Form.Label>Rak</Form.Label>
+            <Form.Control 
+              type="text" 
+              placeholder="Contoh: A1, B2" 
+              value={rak}
+              onChange={(e) => setRak(e.target.value)}
+              disabled={isSaving}
             />
           </Form.Group>
           <Form.Group className="mb-3" controlId="editBarangSumberDana">
@@ -139,12 +140,13 @@ const EditBarangModal = ({ show, handleClose, handleSave, item }) => {
               placeholder="Contoh: BOS, Komite" 
               value={sumber_dana}
               onChange={(e) => setSumberDana(e.target.value)}
+              disabled={isSaving}
             />
           </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
+        <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
           Batal
         </Button>
         <Button variant="primary" onClick={onSave} disabled={isSaving}>
