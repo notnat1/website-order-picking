@@ -1,0 +1,76 @@
+================================================
+PANDUAN UPDATE WEBSITE DI VPS
+================================================
+
+Tujuan: Memperbarui kode website di VPS Anda dengan versi terbaru dari GitHub untuk memperbaiki masalah login.
+
+CATATAN: Anda tidak perlu menghapus direktori 'website-order-picking' yang sudah ada di VPS. Perintah di bawah ini akan memperbaruinya secara otomatis.
+
+------------------------------------------------
+LANGKAH-LANGKAH
+------------------------------------------------
+
+# Jalankan perintah ini satu per satu di terminal VPS Anda.
+
+# 1. Masuk ke direktori proyek Anda.
+#    Ganti '~/website-order-picking' dengan path yang benar jika lokasinya berbeda.
+#    Contoh: /var/www/website-order-picking
+cd ~/website-order-picking
+
+
+# 2. Tarik perubahan kode terbaru dari GitHub.
+#    Ini akan mengunduh file-file yang sudah diperbaiki.
+git pull origin main
+
+
+# 3. Masuk ke direktori backend dan install/update dependensi.
+#    Ini memastikan semua library backend sudah versi terbaru.
+cd inventaris-backend
+npm install
+
+
+# 4. Kembali ke direktori utama, lalu masuk ke frontend dan install/update dependensi.
+cd ../inventaris-frontend
+npm install
+
+
+# 5. (Opsional tapi disarankan) Build ulang aplikasi frontend.
+#    Ini akan membuat versi produksi dari file-file frontend Anda.
+npm run build
+
+
+# 6. Kembali ke direktori backend untuk me-restart server.
+cd ../inventaris-backend
+
+
+# 7. Restart server backend Anda.
+#    Karena Anda menjalankan server dengan 'node server.js', ikuti langkah-langkah ini:
+
+#    a. Pastikan Anda berada di direktori 'inventaris-backend'
+#       (Jika Anda mengikuti langkah sebelumnya, Anda seharusnya sudah di sini)
+
+#    b. Cari PID (Process ID) dari proses node server.js yang sedang berjalan
+#       Perintah ini akan menampilkan baris yang berisi 'node server.js' dan PID-nya.
+#       PID adalah angka kedua di baris tersebut.
+#       Contoh output:
+#       natte      12345  0.0  0.1 123456 7890 ?        Sl   Nov15   0:01 node server.js
+#       Dalam contoh ini, PID-nya adalah 12345.
+ 
+
+#    c. Hentikan proses node server.js yang lama
+#       Ganti <PID_SERVER_LAMA> dengan angka PID yang Anda temukan di langkah 7b.
+kill <PID_SERVER_LAMA>
+
+#    d. (Opsional) Anda bisa menjalankan perintah 'ps aux | grep "node server.js" | grep -v grep' lagi
+#       untuk memastikan proses lama sudah benar-benar berhenti (tidak ada output).
+
+#    e. Jalankan kembali server backend di background
+#       Perintah '&' di akhir akan membuat proses berjalan di background,
+#       sehingga Anda bisa menutup terminal tanpa menghentikan server.
+node server.js &
+
+================================================
+SELESAI
+================================================
+
+Setelah semua langkah selesai, coba buka kembali website Anda. Fitur login seharusnya sudah berfungsi.

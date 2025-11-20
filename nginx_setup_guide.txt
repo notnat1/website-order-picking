@@ -1,0 +1,140 @@
+# Nginx Configuration Steps for your VPS (inventory-app.natte.site)
+
+This guide provides the definitive steps to configure Nginx on your VPS to properly serve your application.
+
+**Before you begin:**
+*   Ensure your Jenkins build is successful.
+*   Ensure the DNS A record for `inventory-app.natte.site` points to your VPS IP address (`62.84.186.196`).
+
+---
+
+**Step 1: SSH into your VPS and become root user**
+
+```bash
+ssh natte@62.84.186.196
+sudo -i
+```
+(Enter your `natte` user password when prompted for `sudo`).
+
+---
+
+**Step 2: Verify SSL Certificate Existence**
+
+Check if the SSL certificate for `inventory-app.natte.site` already exists.
+```bash
+ls -l /etc/letsencrypt/live/inventory-app.natte.site/
+```
+*   **If you see files** like `fullchain.pem` and `privkey.pem`, the certificate exists. Proceed to **Step 4**.
+*   **If you get "No such file or directory" error**, the certificate does not exist. Proceed to **Step 3**.
+
+---
+
+**Step 3: Generate SSL Certificate (ONLY if it does NOT exist from Step 2)**
+
+If the certificate doesn't exist, use Certbot to generate it.
+```bash
+certbot --nginx -d inventory-app.natte.site
+```
+*   Follow Certbot's prompts (e.g., enter your email, agree to terms).
+*   If it asks whether to redirect HTTP to HTTPS, choose the option to **redirect all traffic to HTTPS**.
+*   This command will automatically create the certificate files and might even create an initial (potentially conflicting) Nginx configuration. We will overwrite that in the next step.
+
+---
+
+**Step 4: Create/Update the Nginx Configuration File for your Application**
+
+You need to replace the content of your Nginx site configuration with the correct reverse proxy setup.
+
+1.  **Open the Nginx configuration file for editing:**
+    ```bash
+    nano /etc/nginx/sites-available/inventory-app.natte.site
+    ```
+
+2.  **Delete all existing content** in that file.
+
+3.  **Copy and paste the entire Nginx configuration block below** into the file:
+
+    ```nginx
+    server {
+        listen 80;
+        server_name inventory-app.natte.site;
+
+        # Redirect all HTTP traffic to HTTPS
+        location / {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name inventory-app.natte.site;
+
+        # SSL Certificate paths (ensure these match your Certbot paths if different)
+        ssl_certificate /etc/letsencrypt/live/inventory-app.natte.site/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/inventory-app.natte.site/privkey.pem;
+        include /etc/letsencrypt/options-ssl-nginx.conf;
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+        # Main location for the frontend application
+        location / {
+            # The frontend container is exposed on host port 8080.
+            proxy_pass http://localhost:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+
+        # Location for the backend API calls
+        location /api/ {
+            # The backend container is exposed on host port 5001.
+            proxy_pass http://localhost:5001/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+    ```
+
+4.  **Save the file and exit `nano`** (Press `Ctrl+X`, then `Y` to confirm save, then `Enter`).
+
+---
+
+**Step 5: Ensure the Nginx Site is Enabled and Restart Nginx**
+
+1.  **Create a symbolic link** (if it doesn't already exist) to enable your site. If the link already exists (you got `File exists` previously), you can ignore the error.
+    ```bash
+    ln -s /etc/nginx/sites-available/inventory-app.natte.site /etc/nginx/sites-enabled/
+    ```
+
+2.  **Disable any conflicting default Nginx site configuration.** (This is to prevent the Jenkins page from showing up). If this file doesn't exist, the command will show "No such file or directory", which is fine.
+    ```bash
+    rm /etc/nginx/sites-enabled/default
+    ```
+
+3.  **Test your Nginx configuration for syntax errors:**
+    ```bash
+    nginx -t
+    ```
+    You should see `syntax is ok` and `test is successful`.
+
+4.  **If the test is successful, restart Nginx to apply the changes:**
+    ```bash
+    systemctl restart nginx
+    ```
+
+---
+
+**Step 6: Exit the root user shell**
+
+```bash
+exit
+```
+
+---
+
+After performing all these steps, clear your browser cache and cookies, then try accessing `https://inventory-app.natte.site/`. Your application should now load correctly.
