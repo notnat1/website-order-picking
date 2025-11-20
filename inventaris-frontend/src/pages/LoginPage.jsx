@@ -1,5 +1,6 @@
 import companyLogo from '/icon-website.png';
 import mobileLogo from '/logo tanpa text.png';
+import { useState } from 'react';
 
 // --- STABLE MOBILE VIEW COMPONENT ---
 const MobileView = ({
