@@ -13,7 +13,7 @@ pipeline {
                     sh "sudo mkdir -p ${APP_PATH}"
                     sh "sudo chown -R jenkins:jenkins ${APP_PATH}"
 
-                    git branch: 'main', credentialsId: 'github-inventory-app-ssh-key', url: 'git@github.com:your-username/your-repo.git'
+                    git branch: 'main', credentialsId: 'github-inventory-app-ssh-key', url: 'git@github.com:notnat1/website-order-picking.git'
 
                     sh "sudo cp -R . ${APP_PATH}"
                 }
@@ -65,21 +65,30 @@ pipeline {
         }
     }
 
-    post {
-        success {
-            steps {
+    
+
+        post {
+
+            success {
+
                 echo 'Docker Compose Deployment successful!'
+
             }
-        }
-        failure {
-            steps {
+
+            failure {
+
                 echo 'Docker Compose Deployment failed! Check logs in Jenkins and on the VPS.'
+
             }
-        }
-        always {
-            steps {
+
+            always {
+
                 cleanWs()
+
             }
+
         }
+
     }
-}
+
+    
