@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+      backend:
+        build:
+          context: ./inventaris-backend
+          dockerfile: Dockerfile
+        container_name: inventaris_backend_app
+        restart: always
+        ports:
+          - "5001:5001"
+        environment:
+          DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+          JWT_SECRET: ${JWT_SECRET}
+          PORT: 5001
+        depends_on:
+          - db
+        networks:
+          - inventory-net
+
+      frontend:
+        build:
+          context: ./inventaris-frontend
+          dockerfile: Dockerfile
+          args:
+            VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        container_name: inventaris_frontend_app
+        restart: always
+        ports:
+          - "8088:80" # Expose frontend to host port 8088
+        environment:
+          VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        depends_on:
+          - backend
+        networks:
+          - inventory-net
+
+      db:
+        image: mysql:8.0
+        container_name: inventaris_mysql_db
+        restart: always
+        environment:
+          MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+          MYSQL_DATABASE: ${MYSQL_DATABASE}
+          MYSQL_USER: ${MYSQL_USER}
+          MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        ports:
+          - "3306:3306"
+        volumes:
+          - db_data:/var/lib/mysql
+        networks:
+          - inventory-net
+
+volumes:
+      db_data: {}
+
+networks:
+      inventory-net:
+        driver: bridge
