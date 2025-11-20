@@ -13,7 +13,8 @@ services:
           JWT_SECRET: ${JWT_SECRET}
           PORT: 5001
         depends_on:
-          - db
+          db:
+            condition: service_healthy
         networks:
           - inventory-net
 
@@ -47,6 +48,10 @@ services:
           - "3306:3306"
         volumes:
           - db_data:/var/lib/mysql
+        healthcheck:
+          test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+          timeout: 20s
+          retries: 10
         networks:
           - inventory-net
 
