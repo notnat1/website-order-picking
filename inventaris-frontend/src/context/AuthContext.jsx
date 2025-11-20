@@ -8,65 +8,68 @@ axios.defaults.baseURL = API_URL;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isLoading, setIsLoading] = useState(true); // <-- 1. TAMBAHKAN INI
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-    delete axios.defaults.headers.common['Authorization'];
-    navigate('/login');
-  }, [navigate]);
-
-  // --- FUNGSI LAMA (VERSI SUDAH DIPERBAIKI) ---
+  // Effect for initial load ONLY.
+  // This runs once when the app starts to check for an existing session.
   useEffect(() => {
-    setIsLoading(true); // <-- 2. Mulai loading setiap token berubah
     try {
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        const storedUser = localStorage.getItem('user');
-        
-        if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
-          const userObject = JSON.parse(storedUser);
-          setUser(userObject);
-        } else {
-           // Jika token ada tapi data user tidak ada (aneh), logout paksa
-           console.warn("State tidak konsisten: Token ada, user tidak ada. Logout paksa.");
-           logout();
-        }
-      } else {
-        // Pastikan jika tidak ada token, user juga null
-        delete axios.defaults.headers.common['Authorization'];
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setUser(null);
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
+      if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
       }
     } catch (e) {
-      console.error("Data user korup, logout paksa:", e);
-      logout(); // Panggil fungsi logout jika data korup
+      // If stored data is bad, clear it.
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     } finally {
-      setIsLoading(false); // <-- 3. SETELAH SEMUA SELESAI, BARU SET isLoading = false
+      setIsLoading(false);
     }
-  }, [token, logout]); // <-- Dependensi sudah benar
+  }, []); // Empty dependency array ensures this runs only once on mount.
 
-  // --- PERBAIKAN BUG "TAB HANTU" ---
+  const login = useCallback(async (username, password) => {
+    try {
+      const response = await axios.post('/auth/login', { username, password });
+      if (response.data.token) {
+        const { token, user } = response.data;
+        
+        // Directly handle all state changes and side-effects here
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setToken(token);
+        setUser(user);
+        // The UI will now react to the `user` state change and navigate away from login.
+      }
+    } catch (err) {
+      console.error('Login failed:', err);
+      throw new Error(err.response?.data?.error || 'Login Failed');
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    // Directly handle all state changes and side-effects here
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  // This effect syncs logout across tabs.
   useEffect(() => {
     const handleStorageChange = (e) => {
-      // ... (kode ini biarkan saja, sudah benar)
-      if (e.key === 'token') {
-        const newToken = e.newValue;
-        if (!newToken) {
-          logout(); 
-        } else {
-          const newUser = localStorage.getItem('user');
-          setToken(newToken); // Ini akan memicu useEffect di atas
-          if (newUser && newUser !== 'undefined' && newUser !== 'null') {
-            setUser(JSON.parse(newUser));
-          }
-        }
+      if (e.key === 'token' && !e.newValue) {
+        logout();
+      }
+      if (e.key === 'user' && !e.newValue) {
+        logout();
       }
     };
 
@@ -74,42 +77,16 @@ export const AuthProvider = ({ children }) => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [logout]); 
-
-  // --- FUNGSI LOGIN (Biarkan, sudah benar) ---
-  const login = useCallback(async (username, password) => {
-    try {
-      const response = await axios.post('/auth/login', { username, password });
-      
-      if (response.data.token) {
-        const { token, user } = response.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        
-        // CUKUP SET TOKEN. Biarkan useEffect di atas yang mengurus sisanya.
-        setToken(token); 
-        // setUser(user); // Ini tidak perlu lagi, ditangani useEffect
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`; // Ini juga
-        
-        navigate('/');
-      }
-    } catch (err) {
-      console.error('Login gagal:', err);
-      throw new Error(err.response?.data?.error || 'Login Gagal');
-    }
-  }, [navigate]);
-
+  }, [logout]);
 
   const value = {
     user,
     token,
     login,
     logout,
-    isLoading // <-- 4. EKSPOR isLoading
+    isLoading
   };
 
-  // 5. JANGAN render children jika masih loading awal
-  // Ini memastikan AuthContext siap sebelum seluruh aplikasi dimuat
   return (
     <AuthContext.Provider value={value}>
       {children}

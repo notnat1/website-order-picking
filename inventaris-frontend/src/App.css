@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 /* Global Setup */
 :root {
   --bg-dark-1: #1a1d24; /* Background paling gelap (body) */
@@ -32,14 +34,16 @@ body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: relative; /* Add this */
 }
 
 .sidebar-header {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: white;
   margin-bottom: 30px;
-  /* (Ini 'Inventory' di screenshot kamu) */
+}
+
+.sidebar-logo img {
+  max-width: 220px; /* Adjust as needed */
+  height: auto;
 }
 
 .sidebar .nav-link {
@@ -77,16 +81,25 @@ body {
     var(--gradient-start) 0%,
     var(--gradient-end) 100%
   );
-  padding: 24px 40px;
+  padding: 0 40px; /* Adjusted padding */
   color: white;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  /* (Ini 'Home' link di screenshot kamu) */
+  display: flex;
+  align-items: center;
+  height: 70px; /* Fixed height */
 }
 
-.main-header a {
+.desktop-home-link {
   color: white;
   text-decoration: none;
   font-weight: 500;
+}
+
+.header-title {
+  display: none; /* Hidden by default */
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
 }
 
 /* 5. Konten Utama (Page) */
@@ -109,6 +122,11 @@ body {
   border-radius: 8px;
   padding: 24px;
   border: 1px solid var(--bg-dark-3);
+}
+
+.border-dashed {
+  border: 2px dashed var(--bg-dark-3);
+  border-radius: 12px;
 }
 
 /* 7. Header di dalam Card (Judul + Tombol) */
@@ -311,6 +329,7 @@ body {
 }
 
 /* --- NEW LOGIN PAGE STYLES --- */
+
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -333,6 +352,18 @@ body {
   max-width: 95%; /* Responsive */
   min-height: 500px; /* Tinggi minimum */
   overflow: hidden; /* Penting untuk radius */
+  animation: login-card-appear 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+}
+
+@keyframes login-card-appear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-panel {
@@ -351,8 +382,9 @@ body {
   border-bottom-left-radius: 15px;
 }
 
-.login-panel.right {
-  background-color: var(--accent-blue); /* Warna solid di kanan */
+.login-panel.right,
+.login-panel-desktop {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)); /* Gradasi keren */
   color: white; /* Teks putih di panel kanan */
   text-align: center;
   border-top-right-radius: 15px;
@@ -379,33 +411,6 @@ body {
   border: 1px solid var(--border-color); /* Dari App.css sebelumnya */
   margin-bottom: 20px; /* Tambahan margin */
   height: 45px;
-}
-
-/* Adjustments for smaller screens */
-@media (max-width: 768px) {
-  .login-card {
-    flex-direction: column; /* Panel akan bertumpuk */
-    width: 100%;
-    min-height: auto;
-  }
-  .login-panel.left,
-  .login-panel.right {
-    border-radius: 15px; /* Radius penuh saat bertumpuk */
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-  .login-panel.right {
-    padding: 30px;
-  }
-  .login-panel.left {
-    padding: 30px;
-  }
-  .login-panel.right {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-  }
 }
 
 /* 12. KUSTOMISASI LOGIN PAGE BARU (FLOATING LABEL) */
@@ -462,4 +467,188 @@ body {
 
 .password-toggle-icon:hover {
   color: var(--accent-blue); /* Warna saat di-hover */
+}
+
+/* ========================================= */
+/* ===== RESPONSIVE SIDEBAR STYLES ===== */
+/* ========================================= */
+
+.app-wrapper.sidebar-open {
+  overflow: hidden;
+}
+
+.sidebar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+}
+
+.sidebar-toggle-btn {
+  display: none; /* Hidden by default */
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  z-index: 1001;
+  transition: opacity 0.2s ease;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.sidebar-close-btn {
+  display: none; /* Hidden by default */
+  position: absolute; /* Add this */
+  top: 16px; /* Add this */
+  right: 16px; /* Add this */
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-light-2);
+  cursor: pointer;
+  z-index: 1001;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.sidebar-close-btn:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+    width: 280px;
+    overflow-y: auto; /* FIX: Make sidebar scrollable */
+  }
+
+  .sidebar-toggle-btn,
+  .sidebar-close-btn {
+    display: inline-flex; /* Use inline-flex to show them */
+  }
+  
+  .main-header {
+    padding: 0 20px; /* Adjust padding for mobile */
+    justify-content: flex-start;
+  }
+
+  .desktop-home-link {
+    display: none;
+  }
+
+  .header-title {
+    display: block;
+    margin-left: 10px;
+    font-size: 1.25rem;
+  }
+  
+  .page-content {
+    padding: 24px;
+  }
+
+  .app-wrapper.sidebar-open .sidebar {
+    transform: translateX(0);
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+  }
+  
+  /* Hide toggle button when sidebar is open to fix z-index issue */
+  .app-wrapper.sidebar-open .sidebar-toggle-btn {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+
+  .app-wrapper.sidebar-open .sidebar-overlay {
+    display: block;
+  }
+
+  /* ========================================= */
+  /* ===== RESPONSIVE TABLE (CARD VIEW) ===== */
+  /* ========================================= */
+  .table-responsive-cards thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+  
+  .table-responsive-cards tr {
+    display: block;
+    border: 1px solid var(--bg-dark-3);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .table-responsive-cards td {
+    display: block;
+    text-align: right;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--bg-dark-3);
+  }
+  
+  .table-responsive-cards td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: 600;
+    color: var(--text-light-2);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+  }
+  
+  .table-responsive-cards td:last-child {
+    border-bottom: 0;
+  }
+  
+  /* FIX: Target the Status cell specifically for better alignment */
+  .table-responsive-cards td[data-label="Status Akun"] {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .table-responsive-cards td[data-label="Aksi"] {
+    text-align: center;
+  }
+  .table-responsive-cards td[data-label="Aksi"]::before {
+    display: none;
+  }
 }

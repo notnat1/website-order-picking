@@ -1,0 +1,75 @@
+D:\kevin\website-order-picking>git pull origin main
+From https://github.com/notnat1/website-order-picking
+ * branch            main       -> FETCH_HEAD
+warning: in the working copy of 'inventaris-backend/prisma/schema.prisma', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/src/App.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/src/components/AddBarangModal.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/src/components/EditBarangModal.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/src/components/modals/AddSupplierModal.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/src/components/modals/EditSupplierModal.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'inventaris-frontend/src/pages/LoginPage.jsx', LF will be replaced by CRLF the next time Git touches it
+error: Your local changes to the following files would be overwritten by merge:
+        inventaris-backend/prisma/schema.prisma
+        inventaris-backend/server.js
+        inventaris-backend/src/controllers/authController.js
+        inventaris-backend/src/controllers/itemController.js
+        inventaris-backend/src/controllers/orderController.js
+        inventaris-backend/src/routes/authRoutes.js
+        inventaris-backend/src/routes/orderRoutes.js
+        inventaris-frontend/index.html
+        inventaris-frontend/package-lock.json
+        inventaris-frontend/package.json
+        inventaris-frontend/src/App.css
+        inventaris-frontend/src/App.jsx
+        inventaris-frontend/src/components/AddBarangModal.jsx
+        inventaris-frontend/src/components/AnimatedLogoutButton.jsx
+        inventaris-frontend/src/components/EditBarangModal.jsx
+        inventaris-frontend/src/components/Layout.jsx
+        inventaris-frontend/src/components/modals/AddBarangMasukModal.jsx
+        inventaris-frontend/src/components/modals/AddSupplierModal.jsx
+        inventaris-frontend/src/components/modals/EditSupplierModal.jsx
+        inventaris-frontend/src/context/AuthContext.jsx
+        inventaris-frontend/src/pages/BarangMasukPage.jsx
+        inventaris-frontend/src/pages/BarangPage.jsx
+        inventaris-frontend/src/pages/BuatPesananPage.jsx
+        inventaris-frontend/src/pages/DashboardPage.jsx
+        inventaris-frontend/src/pages/HistoriPesananPage.jsx
+        inventaris-frontend/src/pages/LoginPage.jsx
+        inventaris-frontend/src/pages/ManajemenUserPage.jsx
+        inventaris-frontend/src/pages/PickingDetailPage.jsx
+        inventaris-frontend/src/pages/SupplierPage.jsx
+        inventaris-frontend/src/pages/TugasPickingPage.jsx
+Please commit your changes or stash them before you merge.
+error: The following untracked working tree files would be overwritten by merge:
+        error.png
+        inventaris-backend/prisma/migrations/20251118081107_add_user_status_fields/migration.sql
+        inventaris-backend/prisma/migrations/20251119081846_add_rack_to_item/migration.sql
+        inventaris-frontend/public/---.png
+        inventaris-frontend/public/icon-website.png
+        inventaris-frontend/public/logo tanpa text.png
+        inventaris-frontend/public/logo.jpg
+        inventaris-frontend/public/main-logo.png
+        inventaris-frontend/public/text nya doang.png
+        inventaris-frontend/public/xxx.png
+        inventaris-frontend/src/hooks/useMediaQuery.js
+        inventaris-frontend/src/pages/LoginPage.css
+        langkah-update.txt
+        output.txt
+        perbaikan logo di halaman login.png
+Please move or remove them before you merge.
+Aborting
+Merge with strategy ort failed.
+
+D:\kevin\website-order-picking>git push origin main
+To https://github.com/notnat1/website-order-picking.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/notnat1/website-order-picking.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+D:\kevin\website-order-picking>

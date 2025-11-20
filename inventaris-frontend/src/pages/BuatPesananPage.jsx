@@ -1,6 +1,3 @@
-// Lokasi file: src/pages/BuatPesananPage.jsx
-// (VERSI ROMBAK TOTAL)
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
@@ -9,50 +6,67 @@ import {
   Row, 
   Col, 
   Table, 
-  Alert 
-} from 'react-bootstrap'; // Hapus Container
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+  Alert,
+  Spinner
+} from 'react-bootstrap';
+import toast from 'react-hot-toast';
 
 const BuatPesananPage = () => {
-  // --- SEMUA LOGIKA LAMA KAMU (AMAN) ---
   const [nama_pemesan, setNamaPemesan] = useState('');
   const [cart, setCart] = useState([]); 
   const [listBarang, setListBarang] = useState([]); 
   const [selectedItemId, setSelectedItemId] = useState('');
   const [selectedItemJumlah, setSelectedItemJumlah] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [loadingItems, setLoadingItems] = useState(true); // Loading state for initial item fetch
+  const [errorItems, setErrorItems] = useState(null); // Error state for initial item fetch
+  const [submittingOrder, setSubmittingOrder] = useState(false); // Loading state for order submission
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await axios.get(`${API_URL}/items`);
+        const response = await axios.get('/items'); // Use relative path
         setListBarang(response.data); 
+        setErrorItems(null);
       } catch (err) {
-        setError('Gagal memuat daftar barang.');
+        setErrorItems('Gagal memuat daftar barang.');
+        console.error(err);
+      } finally {
+        setLoadingItems(false);
       }
     };
     fetchItems();
   }, []);
 
   const handleAddItemToCart = () => {
-    if (!selectedItemId || selectedItemJumlah <= 0) {
-      alert("Pilih barang dan masukkan jumlah yang valid.");
+    if (!selectedItemId) {
+      toast.error("Pilih barang yang ingin ditambahkan.");
       return;
     }
+    if (selectedItemJumlah <= 0) {
+      toast.error("Jumlah barang harus lebih dari 0.");
+      return;
+    }
+
     const itemToAdd = listBarang.find(item => item.id === parseInt(selectedItemId));
-    if (!itemToAdd) return;
-    if (itemToAdd.jumlah_stok < selectedItemJumlah) {
-      alert(`Stok ${itemToAdd.nama_barang} tidak cukup. Sisa stok: ${itemToAdd.jumlah_stok}`);
+    if (!itemToAdd) {
+      toast.error("Barang tidak ditemukan.");
       return;
     }
+    if (itemToAdd.jumlah_stok < selectedItemJumlah) {
+      toast.error(`Stok ${itemToAdd.nama_barang} tidak cukup. Sisa stok: ${itemToAdd.jumlah_stok}`);
+      return;
+    }
+
     const itemInCart = cart.find(item => item.item_id === itemToAdd.id);
     if (itemInCart) {
+      const newJumlah = itemInCart.jumlah + parseInt(selectedItemJumlah);
+      if (itemToAdd.jumlah_stok < newJumlah) {
+        toast.error(`Penambahan melebihi stok. Sisa stok: ${itemToAdd.jumlah_stok}`);
+        return;
+      }
       setCart(cart.map(item => 
         item.item_id === itemToAdd.id 
-          ? { ...item, jumlah: item.jumlah + parseInt(selectedItemJumlah) } 
+          ? { ...item, jumlah: newJumlah } 
           : item
       ));
     } else {
@@ -67,24 +81,24 @@ const BuatPesananPage = () => {
     }
     setSelectedItemId('');
     setSelectedItemJumlah(1);
+    toast.success(`${itemToAdd.nama_barang} ditambahkan ke keranjang.`);
  };
 
   const handleRemoveFromCart = (item_id) => {
     setCart(cart.filter(item => item.item_id !== item_id));
+    toast.success("Barang dihapus dari keranjang.");
   };
 
   const handleSubmitOrder = async () => {
     if (!nama_pemesan) {
-      setError("Nama pemesan tidak boleh kosong.");
+      toast.error("Nama pemesan tidak boleh kosong.");
       return;
     }
     if (cart.length === 0) {
-      setError("Keranjang pesanan tidak boleh kosong.");
+      toast.error("Keranjang pesanan tidak boleh kosong.");
       return;
     }
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+    setSubmittingOrder(true);
     const payload = {
       nama_pemesan: nama_pemesan,
       items: cart.map(item => ({
@@ -92,26 +106,40 @@ const BuatPesananPage = () => {
         jumlah: item.jumlah
       }))
     };
-    try {
-      const response = await axios.post(`${API_URL}/orders`, payload);
-      setSuccess(`Pesanan ${response.data.nomor_pesanan} berhasil dibuat!`);
-      setNamaPemesan('');
-      setCart([]);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Gagal membuat pesanan.');
-    } finally {
-      setLoading(false);
-    }
+
+    const promise = axios.post('/orders', payload); // Use relative path
+
+    await toast.promise(promise, {
+      loading: 'Membuat pesanan...',
+      success: (res) => {
+        setNamaPemesan('');
+        setCart([]);
+        return `Pesanan ${res.data.nomor_pesanan} berhasil dibuat!`;
+      },
+      error: (err) => err.response?.data?.error || 'Gagal membuat pesanan.',
+    });
+    setSubmittingOrder(false);
   };
-  // --- AKHIR DARI LOGIKA LAMA ---
 
+  if (loadingItems) {
+    return (
+      <div className="content-card d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+        <Spinner animation="border" role="status" />
+      </div>
+    );
+  }
 
-  // --- INI BAGIAN JSX YANG DIROMBAK ---
+  if (errorItems) {
+    return (
+      <div className="content-card">
+        <Alert variant="danger">{errorItems}</Alert>
+      </div>
+    );
+  }
+
   return (
-    // 1. Ganti <Container> dengan <div className="content-card">
     <div className="content-card">
       
-      {/* 2. Gunakan "section-header" standar */}
       <div className="section-header">
         <div>
           <h2 className="section-title">Buat Pesanan Baru</h2>
@@ -119,13 +147,8 @@ const BuatPesananPage = () => {
         </div>
       </div>
 
-      {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
-      {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
-
-      {/* 3. Gunakan Row & Col untuk layout, tapi bungkus dengan "sub-card" */}
       <Row>
         <Col md={5}>
-          {/* 4. Gunakan "sub-card" untuk membungkus form */}
           <div className="sub-card">
             <h5>Detail Pemesan</h5>
             <Form.Group className="mb-3">
@@ -135,88 +158,97 @@ const BuatPesananPage = () => {
                 placeholder="Masukkan nama pemesan (cth: Sales Budi)"
                 value={nama_pemesan}
                 onChange={(e) => setNamaPemesan(e.target.value)}
+                disabled={submittingOrder}
               />
             </Form.Group>
             
             <hr />
             
             <h5>Tambah Barang ke Pesanan</h5>
-            <Form.Group className="mb-3">
-              <Form.Label>Pilih Barang</Form.Label>
-              <Form.Select
-                value={selectedItemId}
-                onChange={(e) => setSelectedItemId(e.target.value)}
-              >
-                <option value="">Pilih Barang...</option>
-                {listBarang.map(item => (
-                  <option key={item.id} value={item.id}>
-                    {item.nama_barang} (Stok: {item.jumlah_stok})
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Jumlah</Form.Label>
-              <Form.Control 
-                type="number" 
-                value={selectedItemJumlah}
-                onChange={(e) => setSelectedItemJumlah(e.target.value)}
-                min="1"
-              />
-            </Form.Group>
-            
-            {/* 5. Gunakan "btn-accent" */}
-            <Button className="btn-accent w-100" onClick={handleAddItemToCart}>
-              + Tambah ke Keranjang
-            </Button>
+            {listBarang.length === 0 ? (
+              <Alert variant="info">Tidak ada barang tersedia untuk dipesan.</Alert>
+            ) : (
+              <>
+                <Form.Group className="mb-3">
+                  <Form.Label>Pilih Barang</Form.Label>
+                  <Form.Select
+                    value={selectedItemId}
+                    onChange={(e) => setSelectedItemId(e.target.value)}
+                    disabled={submittingOrder}
+                  >
+                    <option value="">Pilih Barang...</option>
+                    {listBarang.map(item => (
+                      <option key={item.id} value={item.id}>
+                        {item.nama_barang} (Stok: {item.jumlah_stok})
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+                
+                <Form.Group className="mb-3">
+                  <Form.Label>Jumlah</Form.Label>
+                  <Form.Control 
+                    type="number" 
+                    value={selectedItemJumlah}
+                    onChange={(e) => setSelectedItemJumlah(e.target.value)}
+                    min="1"
+                    disabled={submittingOrder}
+                  />
+                </Form.Group>
+                
+                <Button className="btn-accent w-100" onClick={handleAddItemToCart} disabled={submittingOrder}>
+                  + Tambah ke Keranjang
+                </Button>
+              </>
+            )}
           </div>
         </Col>
 
         <Col md={7}>
           <div className="sub-card">
             <h5>Keranjang Pesanan</h5>
-            {/* 6. Gunakan "table-soft" */}
-            <Table responsive hover className="table-soft">
-              <thead>
-                <tr>
-                  <th>Nama Barang</th>
-                  <th>Jumlah</th>
-                  <th>Aksi</th>
-              _ </tr>
-              </thead>
-              <tbody>
-                {cart.length === 0 ? (
+            {cart.length === 0 ? (
+              <div className="text-center p-5 my-5 border-dashed">
+                <h4 className="mb-3">Keranjang Kosong</h4>
+                <p className="text-light-2 mb-4">Silakan tambahkan barang dari daftar di samping.</p>
+              </div>
+            ) : (
+              <Table responsive hover className="table-soft table-responsive-cards">
+                <thead>
                   <tr>
-                    <td colSpan="3" className="text-center">Keranjang masih kosong.</td>
+                    <th>Nama Barang</th>
+                    <th>Jumlah</th>
+                    <th>Aksi</th>
                   </tr>
-                ) : (
-                  cart.map((item, index) => (
+                </thead>
+                <tbody>
+                  {cart.map((item, index) => (
                     <tr key={index}>
-                      <td>{item.nama_barang}</td>
-                      <td>{item.jumlah}</td>
-                      <td>
+                      <td data-label="Nama Barang">{item.nama_barang}</td>
+                      <td data-label="Jumlah">{item.jumlah}</td>
+                      <td data-label="Aksi">
                         <Button 
-              _               variant="danger" 
+                          variant="danger" 
                           size="sm"
                           onClick={() => handleRemoveFromCart(item.item_id)}
+                          disabled={submittingOrder}
                         >
                           Hapus
                         </Button>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
+                  ))}
+                </tbody>
+              </Table>
+            )}
             <hr />
             <Button 
               variant="primary" 
               className="w-100 btn-accent"
               onClick={handleSubmitOrder}
-              disabled={loading}
+              disabled={submittingOrder || cart.length === 0}
             >
-              {loading ? "Menyimpan..." : "Simpan Pesanan"}
+              {submittingOrder ? "Menyimpan..." : "Simpan Pesanan"}
             </Button>
           </div>
         </Col>

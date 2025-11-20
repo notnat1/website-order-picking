@@ -94,9 +94,8 @@ const AnimatedLogoutButton = ({ onClick }) => {
   const [classState, setClassState] = useState('');
   const buttonRef = useRef(null);
 
-  // Fungsi untuk update CSS Variables
   const updateButtonState = (state) => {
-    if (logoutButtonStates[state]) {
+    if (logoutButtonStates[state] && buttonRef.current) {
       setAnimationState(state);
       for (let key in logoutButtonStates[state]) {
         buttonRef.current.style.setProperty(key, logoutButtonStates[state][key]);

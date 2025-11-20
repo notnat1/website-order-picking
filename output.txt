@@ -1,0 +1,11 @@
+TypeError: Failed to construct 'URL': Invalid URL
+    at s.formatted_url (simulator.js:1:29184)
+    at e.get (simulator.js:7:23131)
+    at e.evaluate (simulator.js:7:24131)
+    at s.formatted_url (simulator.js:7:37767)
+    at s.n (simulator.js:13:80838)
+    at It.e._render (simulator.js:7:17870)
+    at s.n (simulator.js:7:26922)
+    at e.get (simulator.js:7:23131)
+    at e.run (simulator.js:7:23868)
+    at Fi (simulator.js:7:29108)

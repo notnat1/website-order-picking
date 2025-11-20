@@ -1,71 +1,85 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Table, Button, Alert, Spinner, Badge, Form } from 'react-bootstrap'; // <-- Tambah Form
+import { Table, Button, Alert, Spinner, Badge, Form, Row, Col } from 'react-bootstrap';
+import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 const PickingDetailPage = () => {
   const { id } = useParams(); 
   const navigate = useNavigate();
+  const { user } = useAuth(); // Get current user info
 
   const [order, setOrder] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [loadingSelesai, setLoadingSelesai] = useState(false);
   
-  // State baru untuk menyimpan kuantitas yang benar-benar diambil
   const [itemsTaken, setItemsTaken] = useState({});
 
-  // 1. useEffect untuk mengambil data order detail
+  // State for assignment feature
+  const [pickers, setPickers] = useState([]);
+  const [loadingPickers, setLoadingPickers] = useState(false);
+  const [selectedPickerId, setSelectedPickerId] = useState('');
+
+  const fetchOrderDetail = useCallback(async () => {
+    try {
+      // No need to check for loading, just set it.
+      setLoading(true);
+      const response = await axios.get(`/orders/${id}`); 
+      setOrder(response.data);
+      
+      const initialItemsTaken = {};
+      response.data.orderItems.forEach(detail => {
+        initialItemsTaken[detail.item_id] = detail.jumlah;
+      });
+      setItemsTaken(initialItemsTaken);
+      
+    } catch (err) {
+      setError('Gagal mengambil detail pesanan.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]); // <-- Dependency array cleaned up
+
   useEffect(() => {
-    const fetchOrderDetail = async () => {
-      try {
-        setLoading(true);
-        // Path sudah diperbaiki
-        const response = await axios.get(`/orders/${id}`); 
-        setOrder(response.data);
-        
-        // Inisialisasi itemsTaken dengan kuantitas yang diminta
-        const initialItemsTaken = {};
-        response.data.orderItems.forEach(detail => {
-          initialItemsTaken[detail.item_id] = detail.jumlah;
-        });
-        setItemsTaken(initialItemsTaken);
-        
-      } catch (err) {
-        setError('Gagal mengambil detail pesanan.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrderDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
 
-  // Handler perubahan kuantitas input
+    // Fetch pickers only if user is admin
+    if (user?.level === 'manajemen') {
+      const fetchPickers = async () => {
+        setLoadingPickers(true);
+        try {
+          const response = await axios.get('/auth/warehouse-users');
+          setPickers(response.data);
+        } catch (err) {
+          toast.error('Gagal memuat daftar picker.');
+          console.error(err);
+        } finally {
+          setLoadingPickers(false);
+        }
+      };
+      fetchPickers();
+    }
+  }, [id, user?.level, fetchOrderDetail]);
+
   const handleQuantityChange = (itemId, maxStock, value) => {
     const numValue = parseInt(value);
-    
-    if (numValue < 0) return; // Tidak boleh negatif
-    if (numValue > maxStock) return; // Tidak boleh melebihi stok tersedia
+    if (isNaN(numValue) || numValue < 0) return;
+    if (numValue > maxStock) return;
 
-    setItemsTaken(prev => ({
-      ...prev,
-      [itemId]: numValue
-    }));
+    setItemsTaken(prev => ({ ...prev, [itemId]: numValue }));
   };
   
-  // 2. FUNGSI JANTUNG: Saat tombol "Selesai Picking" diklik
   const handleCompletePicking = async () => {
-    // Buat array items_taken untuk payload
     const items_taken_payload = Object.keys(itemsTaken).map(itemId => ({
       item_id: parseInt(itemId),
       jumlah_ambil: itemsTaken[itemId]
-    })).filter(item => item.jumlah_ambil > 0); // Hanya kirim yang diambil > 0
+    })).filter(item => item.jumlah_ambil > 0);
 
     if (items_taken_payload.length === 0) {
-      setError('Anda harus mengambil minimal 1 item untuk menyelesaikan pesanan.');
+      toast.error('Anda harus mengambil minimal 1 item untuk menyelesaikan pesanan.');
       return;
     }
     
@@ -74,64 +88,111 @@ const PickingDetailPage = () => {
     }
     
     setLoadingSelesai(true);
-    setError(null);
+    const promise = axios.post(`/orders/${id}/complete`, { items_taken: items_taken_payload });
 
-    try {
-      // Panggil API backend 'completeOrderPicking' dengan payload kuantitas yang diambil
-      await axios.post(`/orders/${id}/complete`, { items_taken: items_taken_payload });
-      
-      alert('Picking selesai! Stok telah diupdate.');
-      navigate('/tugas-picking'); // <-- Kembali ke daftar tugas
-
-    } catch (err) {
-      const message = err.response?.data?.error || 'Gagal memproses. Coba lagi.';
-      setError(message);
-      console.error(err);
-    } finally {
-      setLoadingSelesai(false);
-    }
+    await toast.promise(promise, {
+      loading: 'Menyelesaikan picking...',
+      success: () => {
+        navigate('/tugas-picking');
+        return 'Picking selesai! Stok telah diupdate.';
+      },
+      error: (err) => err.response?.data?.error || 'Gagal memproses. Coba lagi.',
+    });
+    setLoadingSelesai(false);
   };
 
+  const handleAssignPicker = async () => {
+    if (!selectedPickerId) {
+      toast.error('Pilih seorang picker untuk ditugaskan.');
+      return;
+    }
+    const promise = axios.post(`/orders/${id}/assign`, { pickerId: selectedPickerId });
 
-  // Tampilan loading awal
+    await toast.promise(promise, {
+      loading: 'Menugaskan picker...',
+      success: () => {
+        fetchOrderDetail(); // Refresh order details on success
+        return 'Picker berhasil ditugaskan!';
+      },
+      error: (err) => err.response?.data?.error || 'Gagal menugaskan picker.',
+    });
+  };
+
   if (loading) {
     return (
-      <div className="content-card">
+      <div className="content-card d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
         <Spinner animation="border" />
-        <p className="ms-2 d-inline">Memuat detail pesanan...</p>
       </div>
     );
   }
 
-  // Tampilan jika error
   if (error) {
      return <div className="content-card"><Alert variant="danger">{error}</Alert></div>
   }
 
-  // Tampilan jika order tidak ditemukan
   if (!order) {
     return <div className="content-card"><Alert variant="warning">Order tidak ditemukan.</Alert></div>
   }
 
-  // Cek apakah ada masalah stok yang terdeteksi di form
   const hasLowStockIssue = order.orderItems.some(detail => 
     itemsTaken[detail.item_id] > detail.item.jumlah_stok
   );
 
-  // 3. Tampilan Halaman (JSX)
+  const renderAssignmentSection = () => {
+    if (order.picker) {
+      return (
+        <span>
+          Ditugaskan ke: <strong>{order.picker.nama}</strong>
+        </span>
+      );
+    }
+    if (user?.level === 'manajemen') {
+      return (
+        <Row className="align-items-center mt-2">
+          <Col xs="auto">
+            <Form.Label htmlFor="picker-select" className="mb-0">Tugaskan ke:</Form.Label>
+          </Col>
+          <Col>
+            <Form.Select
+              id="picker-select"
+              size="sm"
+              value={selectedPickerId}
+              onChange={(e) => setSelectedPickerId(e.target.value)}
+              disabled={loadingPickers}
+            >
+              <option value="">{loadingPickers ? 'Memuat...' : 'Pilih Picker'}</option>
+              {pickers.map(p => <option key={p.id} value={p.id}>{p.nama}</option>)}
+            </Form.Select>
+          </Col>
+          <Col xs="auto">
+            <Button size="sm" onClick={handleAssignPicker}>Tugaskan</Button>
+          </Col>
+        </Row>
+      );
+    }
+    return (
+      <span>
+        Ditugaskan ke: <strong>Belum ditugaskan</strong>
+      </span>
+    );
+  };
+
   return (
     <div className="content-card">
       <div className="section-header">
         <div>
           <h2 className="section-title">Detail Picking: {order.nomor_pesanan}</h2>
           <p className="section-subtitle">
-            Untuk: {order.nama_pemesan} | Ditugaskan ke: **{order.picker?.nama || 'Belum ditugaskan'}**
+            Untuk: {order.nama_pemesan}
           </p>
+          <div className="section-subtitle">
+            {renderAssignmentSection()}
+          </div>
         </div>
         <Button 
           className="btn-accent" 
           onClick={handleCompletePicking}
-          disabled={loadingSelesai || order.status !== 'Pending' || hasLowStockIssue} // <-- Disabled jika stok kurang
+          disabled={loadingSelesai || order.status !== 'Pending' || hasLowStockIssue}
         >
           {loadingSelesai ? 'Memproses...' : '✅ Selesai Picking'}
         </Button>
@@ -143,15 +204,14 @@ const PickingDetailPage = () => {
           </Alert>
       )}
 
-      {error && <Alert variant="danger">{error}</Alert>}
-
       <h5 className="mt-4">Daftar Barang untuk Diambil:</h5>
-      <Table responsive hover className="table-soft">
+      <Table responsive hover className="table-soft table-responsive-cards">
         <thead>
           <tr>
             <th>No</th>
             <th>Nama Barang</th>
             <th>Lokasi Gudang</th>
+            <th>Rak</th>
             <th>Diminta</th>
             <th>Stok Tersedia</th>
             <th>Kuantitas Ambil</th>
@@ -161,32 +221,32 @@ const PickingDetailPage = () => {
           {order.orderItems?.length > 0 ? (
             order.orderItems.map((detail, index) => (
               <tr key={detail.id}>
-                <td>{index + 1}</td>
-                <td>{detail.item.nama_barang}</td>
-                <td>{detail.item.lokasi || '-'}</td>
-                <td>{detail.jumlah}</td>
-                {/* Tandai stok tersedia merah jika lebih kecil dari yang diminta */}
-                <td style={detail.item.jumlah_stok < detail.jumlah ? { color: '#dc3545', fontWeight: 'bold' } : {}}>
+                <td data-label="No">{index + 1}</td>
+                <td data-label="Nama Barang">{detail.item.nama_barang}</td>
+                <td data-label="Lokasi">{detail.item.lokasi || '-'}</td>
+                <td data-label="Rak">{detail.item.rak || '-'}</td>
+                <td data-label="Diminta">{detail.jumlah}</td>
+                <td data-label="Stok Tersedia" style={detail.item.jumlah_stok < detail.jumlah ? { color: '#dc3545', fontWeight: 'bold' } : {}}>
                     {detail.item.jumlah_stok}
                 </td>
-                <td>
+                <td data-label="Kuantitas Ambil">
                     <Form.Control
                         type="number"
                         size="sm"
-                        value={itemsTaken[detail.item_id]}
+                        value={itemsTaken[detail.item_id] ?? ''}
                         onChange={(e) => 
                             handleQuantityChange(
                                 detail.item_id, 
-                                detail.item.jumlah_stok, // max stock
+                                detail.item.jumlah_stok,
                                 e.target.value
                             )
                         }
                         min="0"
-                        max={detail.item.jumlah_stok} // Maksimal stok yang ada
-                        style={{ width: '100px' }}
+                        max={detail.item.jumlah_stok}
+                        style={{ width: '100px', display: 'inline-block' }}
                     />
                     {itemsTaken[detail.item_id] > detail.item.jumlah_stok && (
-                        <small className="text-danger">Maks {detail.item.jumlah_stok}</small>
+                        <small className="text-danger d-block mt-1">Maks {detail.item.jumlah_stok}</small>
                     )}
                 </td>
               </tr>
