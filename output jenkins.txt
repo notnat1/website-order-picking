@@ -1,0 +1,311 @@
+Started by GitHub push by notnat1
+Obtained Jenkinsfile from git https://github.com/notnat1/website-order-picking.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/lib/jenkins/workspace/inventory-app-deploy
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential github-pat-notnat1
+Cloning the remote Git repository
+Cloning repository https://github.com/notnat1/website-order-picking.git
+ > git init /var/lib/jenkins/workspace/inventory-app-deploy # timeout=10
+Fetching upstream changes from https://github.com/notnat1/website-order-picking.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+using GIT_ASKPASS to set credentials 
+ > git fetch --tags --force --progress -- https://github.com/notnat1/website-order-picking.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url https://github.com/notnat1/website-order-picking.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision aa3dab7b709f356f63ea3977f7281acad569cfb5 (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f aa3dab7b709f356f63ea3977f7281acad569cfb5 # timeout=10
+Commit message: "fix nginx"
+ > git rev-list --no-walk f93142966b770259d3302c6e2431a200e7e9e369 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout Code and Prepare Directory)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sh
++ sudo rm -rf /opt/website-order-picking/Jenkinsfile /opt/website-order-picking/LICENSE /opt/website-order-picking/certbot_permission_fix_guide.md /opt/website-order-picking/comprehensive_deployment_guide.txt /opt/website-order-picking/credential.png /opt/website-order-picking/db_inventaris_js.sql /opt/website-order-picking/dns_setup_confirmation.md /opt/website-order-picking/docker-compose.yml /opt/website-order-picking/error tampilan jenkins.png /opt/website-order-picking/final_deployment_instructions.md /opt/website-order-picking/how to fill.png /opt/website-order-picking/inventaris-backend /opt/website-order-picking/inventaris-frontend /opt/website-order-picking/jenkins_credentials_fill_guide.md /opt/website-order-picking/jenkins_screenshot_guide.md /opt/website-order-picking/langkah-update.txt /opt/website-order-picking/next_steps_after_credentials.md /opt/website-order-picking/nginx_reverse_proxy.conf /opt/website-order-picking/nginx_setup_guide.txt /opt/website-order-picking/nginx_setup_guide_latest.txt /opt/website-order-picking/output jenkins.txt /opt/website-order-picking/output.txt /opt/website-order-picking/package-lock.json /opt/website-order-picking/port_conflict_explanation.md /opt/website-order-picking/user_git_instructions.md
+[Pipeline] sh
++ sudo mkdir -p /opt/website-order-picking
+[Pipeline] sh
++ sudo chown -R jenkins:jenkins /opt/website-order-picking
+[Pipeline] git
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential github-inventory-app-ssh-key
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/inventory-app-deploy/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url git@github.com:notnat1/website-order-picking.git # timeout=10
+Fetching upstream changes from git@github.com:notnat1/website-order-picking.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+using GIT_SSH to set credentials SSH key for cloning website-order-picking from GitHub
+Verifying host key using known hosts file, will automatically accept unseen keys
+ > git fetch --tags --force --progress -- git@github.com:notnat1/website-order-picking.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision aa3dab7b709f356f63ea3977f7281acad569cfb5 (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f aa3dab7b709f356f63ea3977f7281acad569cfb5 # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git checkout -b main aa3dab7b709f356f63ea3977f7281acad569cfb5 # timeout=10
+Commit message: "fix nginx"
+ > git rev-list --no-walk f93142966b770259d3302c6e2431a200e7e9e369 # timeout=10
+[Pipeline] sh
++ sudo cp -R . /opt/website-order-picking
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Docker Compose Deploy)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of $MYSQL_ROOT_PASSWORD_JENKINS or $MYSQL_DATABASE_JENKINS or $MYSQL_USER_JENKINS or $MYSQL_PASSWORD_JENKINS or $JWT_SECRET_JENKINS
+[Pipeline] {
+[Pipeline] sh
+Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
+		 Affected argument(s) used the following variable(s): [MYSQL_PASSWORD_JENKINS, MYSQL_DATABASE_JENKINS, MYSQL_ROOT_PASSWORD_JENKINS, JWT_SECRET_JENKINS, MYSQL_USER_JENKINS]
+		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
++ echo MYSQL_ROOT_PASSWORD=****
++ echo MYSQL_DATABASE=****
++ echo MYSQL_USER=****
++ echo MYSQL_PASSWORD=****
++ echo JWT_SECRET=****
++ echo VITE_API_BASE_URL=/api
+[Pipeline] sh
++ sudo mv .env /opt/website-order-picking/.env
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] sh
++ sudo docker-compose --project-directory /opt/website-order-picking -f /opt/website-order-picking/docker-compose.yml down --remove-orphans
+time="2025-11-20T09:06:38+01:00" level=warning msg="/opt/website-order-picking/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Container inventaris_frontend_app  Stopping
+ Container inventaris_frontend_app  Stopped
+ Container inventaris_frontend_app  Removing
+ Container inventaris_frontend_app  Removed
+ Container inventaris_backend_app  Stopping
+ Container inventaris_backend_app  Stopped
+ Container inventaris_backend_app  Removing
+ Container inventaris_backend_app  Removed
+ Container inventaris_mysql_db  Stopping
+ Container inventaris_mysql_db  Stopped
+ Container inventaris_mysql_db  Removing
+ Container inventaris_mysql_db  Removed
+ Network website-order-picking_inventory-net  Removing
+ Network website-order-picking_inventory-net  Removed
+[Pipeline] sh
++ sudo docker-compose --project-directory /opt/website-order-picking -f /opt/website-order-picking/docker-compose.yml up --build --force-recreate -d
+time="2025-11-20T09:06:50+01:00" level=warning msg="/opt/website-order-picking/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.07kB done
+#1 DONE 0.0s
+
+#2 [frontend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.12kB done
+#2 WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 2)
+#2 WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 24)
+#2 DONE 0.0s
+
+#3 [backend internal] load build definition from Dockerfile
+#3 transferring dockerfile: 746B done
+#3 DONE 0.0s
+
+#4 [backend internal] load metadata for docker.io/library/node:20-alpine
+#4 ...
+
+#5 [frontend internal] load metadata for docker.io/library/nginx:alpine
+#5 DONE 0.8s
+
+#4 [backend internal] load metadata for docker.io/library/node:20-alpine
+#4 DONE 0.9s
+
+#6 [frontend internal] load .dockerignore
+#6 transferring context: 105B done
+#6 DONE 0.0s
+
+#7 [backend internal] load .dockerignore
+#7 transferring context: 105B done
+#7 DONE 0.0s
+
+#8 [backend build-stage 1/6] FROM docker.io/library/node:20-alpine@sha256:6178e78b972f79c335df281f4b7674a2d85071aae2af020ffa39f0a770265435
+#8 DONE 0.0s
+
+#9 [frontend production-stage 1/3] FROM docker.io/library/nginx:alpine@sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14
+#9 DONE 0.0s
+
+#10 [backend internal] load build context
+#10 transferring context: 146.66kB 0.0s done
+#10 DONE 0.0s
+
+#11 [backend 5/6] COPY . .
+#11 CACHED
+
+#12 [backend 3/6] COPY package.json package-lock.json ./
+#12 CACHED
+
+#13 [backend 4/6] RUN npm install --omit=dev
+#13 CACHED
+
+#14 [backend 6/6] RUN npx prisma generate
+#14 CACHED
+
+#15 [frontend internal] load build context
+#15 transferring context: 1.59MB 0.0s done
+#15 DONE 0.0s
+
+#16 [backend] exporting to image
+#16 exporting layers done
+#16 writing image sha256:c71bd553239410eac8902e08ec64d7790f0e4aa77a9ecdc8684a8ddecd2be2ca done
+#16 naming to docker.io/library/website-order-picking-backend done
+#16 DONE 0.0s
+
+#17 [frontend build-stage 3/6] COPY package.json package-lock.json ./
+#17 CACHED
+
+#18 [frontend build-stage 2/6] WORKDIR /app
+#18 CACHED
+
+#19 [frontend build-stage 4/6] RUN npm install
+#19 CACHED
+
+#20 [backend] resolving provenance for metadata file
+#20 DONE 0.0s
+
+#21 [frontend build-stage 5/6] COPY . .
+#21 DONE 0.1s
+
+#22 [frontend build-stage 6/6] RUN npm run build
+#22 0.446 
+#22 0.446 > inventaris-frontend@0.0.0 build
+#22 0.446 > vite build
+#22 0.446 
+#22 0.828 vite v7.1.12 building for production...
+#22 0.919 transforming...
+
+#22 10.43 ✓ 2508 modules transformed.
+#22 10.93 rendering chunks...
+#22 10.95 computing gzip size...
+#22 10.97 dist/index.html                   0.47 kB │ gzip:   0.30 kB
+#22 10.97 dist/assets/index-C-UPY1mX.css  249.11 kB │ gzip:  35.20 kB
+#22 10.97 dist/assets/index-CX9pIDXv.js   384.40 kB │ gzip: 119.30 kB
+#22 10.97 ✓ built in 10.11s
+#22 DONE 11.2s
+
+#23 [frontend production-stage 2/3] COPY --from=build-stage /app/dist /usr/share/nginx/html
+#23 CACHED
+
+
+#24 [frontend production-stage 3/3] COPY nginx.conf /etc/nginx/conf.d/default.conf
+#24 DONE 0.1s
+
+#25 [frontend] exporting to image
+#25 exporting layers 0.0s done
+#25 writing image sha256:7aa2a6198d4319d7de192aee288b95e92e57800708cf3ad30dbe7aedb68c8545 done
+#25 naming to docker.io/library/website-order-picking-frontend done
+#25 DONE 0.0s
+
+#26 [frontend] resolving provenance for metadata file
+#26 DONE 0.0s
+ website-order-picking-backend  Built
+ website-order-picking-frontend  Built
+ Network website-order-picking_inventory-net  Creating
+ Network website-order-picking_inventory-net  Created
+ Container inventaris_mysql_db  Creating
+ Container inventaris_mysql_db  Created
+ Container inventaris_backend_app  Creating
+ Container inventaris_backend_app  Created
+ Container inventaris_frontend_app  Creating
+ Container inventaris_frontend_app  Created
+ Container inventaris_mysql_db  Starting
+ Container inventaris_mysql_db  Started
+ Container inventaris_backend_app  Starting
+ Container inventaris_backend_app  Started
+ Container inventaris_frontend_app  Starting
+ Container inventaris_frontend_app  Started
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+
+[Pipeline] stage
+[Pipeline] { (Run Database Migrations (if applicable))
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sh
++ sudo docker-compose --project-directory /opt/website-order-picking -f /opt/website-order-picking/docker-compose.yml exec backend npx prisma migrate resolve --applied 20251118081107_add_user_status_fields
+time="2025-11-20T09:07:05+01:00" level=warning msg="/opt/website-order-picking/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": MySQL database "db-inventory" at "db:3306"
+Error: P3008
+
+The migration `20251118081107_add_user_status_fields` is already recorded as applied in the database.
+
++ true
+[Pipeline] sh
++ sudo docker-compose --project-directory /opt/website-order-picking -f /opt/website-order-picking/docker-compose.yml exec backend npx prisma migrate resolve --applied 20251119081846_add_rack_to_item
+time="2025-11-20T09:07:08+01:00" level=warning msg="/opt/website-order-picking/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": MySQL database "db-inventory" at "db:3306"
+Error: P3008
+
+The migration `20251119081846_add_rack_to_item` is already recorded as applied in the database.
+
++ true
+[Pipeline] sh
+
++ sudo docker-compose --project-directory /opt/website-order-picking -f /opt/website-order-picking/docker-compose.yml exec backend npx prisma migrate deploy
+time="2025-11-20T09:07:11+01:00" level=warning msg="/opt/website-order-picking/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": MySQL database "db-inventory" at "db:3306"
+
+7 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Nginx Reload (if used as reverse proxy))
+[Pipeline] sh
++ sudo systemctl reload nginx
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] cleanWs
+[WS-CLEANUP] Deleting project workspace...
+[WS-CLEANUP] Deferred wipeout is used...
+[WS-CLEANUP] done
+[Pipeline] echo
+Docker Compose Deployment successful!
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
