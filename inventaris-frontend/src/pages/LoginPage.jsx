@@ -1,10 +1,5 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { Navigate } from 'react-router-dom';
-import { Form, Button, Alert, Spinner } from 'react-bootstrap';
-import { Eye, EyeSlash, Person, Lock } from 'react-bootstrap-icons';
-import useMediaQuery from '../hooks/useMediaQuery';
-import './LoginPage.css';
+import companyLogo from '/icon-website.png';
+import mobileLogo from '/logo tanpa text.png';
 
 // --- STABLE MOBILE VIEW COMPONENT ---
 const MobileView = ({
@@ -20,7 +15,7 @@ const MobileView = ({
     <div className="login-background-animations"></div>
     <div className="mobile-login-wrapper">
       <div className="mobile-logo-container">
-        <img src="/logo tanpa text.png" alt="Company Logo" className="mobile-logo" />
+        <img src={mobileLogo} alt="Company Logo" className="mobile-logo" />
         <h1 className="mobile-company-name">PT. HASJRAT ABADI</h1>
       </div>
       {error && <Alert variant="danger" dismissible>{error}</Alert>}
@@ -64,7 +59,7 @@ const DesktopView = ({
       <div className="login-panel left">
         <div className="desktop-login-wrapper">
           <div className="login-logo">
-            <img src="/icon-website.png" alt="Company Logo" />
+            <img src={companyLogo} alt="Company Logo" />
             <h3 className="company-name-desktop">PT. HASJRAT ABADI</h3>
           </div>
           {error && <Alert variant="danger" dismissible>{error}</Alert>}
