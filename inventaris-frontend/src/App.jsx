@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-
+// test-jenkins
 // Impor Halaman
 import DashboardPage from './pages/DashboardPage';
 import BarangPage from './pages/BarangPage';
