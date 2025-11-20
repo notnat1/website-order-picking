@@ -1,6 +1,14 @@
-import companyLogo from '/icon-website.png';
-import mobileLogo from '/logo tanpa text.png';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Eye, EyeSlash, Person, Lock } from 'react-bootstrap-icons';
+import useMediaQuery from '../hooks/useMediaQuery';
+import './LoginPage.css';
+
+// Import logo assets directly
+import companyLogo from '../assets/react.svg'; // Use a valid path from your assets folder
+import mobileLogo from '/icon-website.png'; // Assuming this is in public/
 
 // --- STABLE MOBILE VIEW COMPONENT ---
 const MobileView = ({
