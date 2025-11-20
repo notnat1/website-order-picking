@@ -43,6 +43,9 @@ pipeline {
 
                     sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml down --remove-orphans || true"
                     sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml up --build --force-recreate -d"
+
+                    // DEBUGGING: Print backend logs to find startup error
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml logs inventaris_backend_app"
                 }
             }
         }
