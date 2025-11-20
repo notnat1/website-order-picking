@@ -50,6 +50,12 @@ pipeline {
         stage('Run Database Migrations (if applicable)') {
             steps {
                 script {
+                    // Temporarily resolve previously failed migrations.
+                    // The --preview flag shows what will happen without changing the database.
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate resolve --applied 20251118081107_add_user_status_fields --preview || true"
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate resolve --applied 20251119081846_add_rack_to_item --preview || true"
+                    
+                    // Now, try to deploy the migrations again.
                     sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate deploy"
                 }
             }
