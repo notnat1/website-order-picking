@@ -25,6 +25,8 @@ services:
       dockerfile: Dockerfile
     container_name: inventaris_frontend_app
     restart: always
+    ports:
+      - "8080:80" # Expose frontend to host port 8080 for Nginx proxy
     environment:
       # This variable is used during the frontend build process
       VITE_API_BASE_URL: /api
