@@ -47,20 +47,27 @@ pipeline {
             }
         }
 
-        stage('Run Database Migrations (if applicable)') {
-            steps {
-                script {
-                    // Resolve previously failed migrations by marking them as applied.
-                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate resolve --applied 20251118081107_add_user_status_fields || true"
-                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate resolve --applied 20251119081846_add_rack_to_item || true"
-                    
-                    // Now, deploy the migrations again. This should succeed.
-                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate deploy"
-                    // Run seed script to populate initial data, e.g., default admin user
-                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma db seed"
+                stage('Run Database Migrations (if applicable)') {
+
+                    steps {
+
+                        script {
+
+                            // Deploy the migrations. This will apply all pending migrations.
+
+                            sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate deploy"
+
+                            
+
+                            // Run seed script to populate initial data, e.g., default admin user
+
+                            sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma db seed"
+
+                        }
+
+                    }
+
                 }
-            }
-        }
 
         stage('Nginx Reload (if used as reverse proxy)') {
             steps {
