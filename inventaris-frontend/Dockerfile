@@ -26,10 +26,8 @@ FROM nginx:alpine as production-stage
 # Copy the build output from the build-stage to Nginx's public folder
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-# Optional: Copy a custom Nginx configuration for your frontend if needed
-# For a basic static site, the default Nginx config is often fine
-# If your Nginx config for frontend should handle routing for SPAs (like React), you might need this:
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy the custom Nginx configuration for the React SPA
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80 (Nginx's default)
 EXPOSE 80
