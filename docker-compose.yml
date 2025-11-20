@@ -24,7 +24,7 @@ services:
     container_name: inventaris_frontend_app
     restart: always
     ports:
-      - "80:80" # Frontend (Nginx) listens on port 80, expose to host port 80
+      - "8080:80" # Frontend (Nginx) listens on port 80, expose to host port 8080 to avoid conflict
       # You might use a different host port if Nginx is already running on port 80 on your VPS
       # For example: - "8080:80"
     environment:
