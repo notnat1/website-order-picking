@@ -23,25 +23,26 @@ pipeline {
         stage('Docker Compose Deploy') {
             steps {
                 script {
-                    dir("${APP_PATH}") {
-                        withCredentials([
-                            string(credentialsId: 'MYSQL_ROOT_PASSWORD_SECRET_ID', variable: 'MYSQL_ROOT_PASSWORD_JENKINS'),
-                            string(credentialsId: 'MYSQL_DATABASE_SECRET_ID', variable: 'MYSQL_DATABASE_JENKINS'),
-                            string(credentialsId: 'MYSQL_USER_SECRET_ID', variable: 'MYSQL_USER_JENKINS'),
-                            string(credentialsId: 'MYSQL_PASSWORD_SECRET_ID', variable: 'MYSQL_PASSWORD_JENKINS'),
-                            string(credentialsId: 'JWT_SECRET_SECRET_ID', variable: 'JWT_SECRET_JENKINS')
-                        ]) {
-                            sh """
-                            echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD_JENKINS}" > .env
-                            echo "MYSQL_DATABASE=${MYSQL_DATABASE_JENKINS}" >> .env
-                            echo "MYSQL_USER=${MYSQL_USER_JENKINS}" >> .env
-                            echo "MYSQL_PASSWORD=${MYSQL_PASSWORD_JENKINS}" >> .env
-                            echo "JWT_SECRET=${JWT_SECRET_JENKINS}" >> .env
-                            echo "VITE_API_BASE_URL=/api" >> .env
-                            """
-                        }
+                    withCredentials([
+                        string(credentialsId: 'MYSQL_ROOT_PASSWORD_SECRET_ID', variable: 'MYSQL_ROOT_PASSWORD_JENKINS'),
+                        string(credentialsId: 'MYSQL_DATABASE_SECRET_ID', variable: 'MYSQL_DATABASE_JENKINS'),
+                        string(credentialsId: 'MYSQL_USER_SECRET_ID', variable: 'MYSQL_USER_JENKINS'),
+                        string(credentialsId: 'MYSQL_PASSWORD_SECRET_ID', variable: 'MYSQL_PASSWORD_JENKINS'),
+                        string(credentialsId: 'JWT_SECRET_SECRET_ID', variable: 'JWT_SECRET_JENKINS')
+                    ]) {
+                        sh """
+                        echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD_JENKINS}" > .env
+                        echo "MYSQL_DATABASE=${MYSQL_DATABASE_JENKINS}" >> .env
+                        echo "MYSQL_USER=${MYSQL_USER_JENKINS}" >> .env
+                        echo "MYSQL_PASSWORD=${MYSQL_PASSWORD_JENKINS}" >> .env
+                        echo "JWT_SECRET=${JWT_SECRET_JENKINS}" >> .env
+                        echo "VITE_API_BASE_URL=/api" >> .env
+                        """
+                        sh "sudo mv .env ${APP_PATH}/.env"
+                    }
 
-                        sh "sudo docker-compose down --remove-orphans || true" 
+                    dir("${APP_PATH}") {
+                        sh "sudo docker-compose down --remove-orphans || true"
                         sh "sudo docker-compose up --build --force-recreate -d"
                     }
                 }
