@@ -57,7 +57,7 @@ pipeline {
                     // Now, deploy the migrations again. This should succeed.
                     sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate deploy"
                     // Run seed script to populate initial data, e.g., default admin user
-                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma db seed --force"
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma db seed"
                 }
             }
         }
