@@ -1,272 +1,95 @@
-/* All display properties are now handled by conditional rendering in the JSX */
+/* Default desktop styles (always show desktop wrapper, hide mobile) */
+.desktop-login-wrapper {
+  display: block; /* Show by default on desktop */
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+}
 
-/* Styles for mobile devices */
+.mobile-login-wrapper {
+  display: none; /* Hidden by default on desktop */
+}
+
+/* Adjustments for smaller screens */
 @media (max-width: 768px) {
-  /* --- SETUP & BACKGROUND --- */
+  /* Hide the desktop wrapper */
+  .desktop-login-wrapper {
+    display: none;
+  }
+
+  /* Show and style the new mobile wrapper */
   .mobile-login-wrapper {
-    display: flex;
+    display: flex; /* Changed from block to flex for proper layout */
     flex-direction: column;
     width: 100%;
-    max-width: 400px;
+    max-width: 400px; /* From mobile-login-wrapper style block in previous output */
     height: 100%;
     justify-content: center;
     position: relative;
-    z-index: 2; /* CONTENT is on layer 2 */
+    z-index: 2;
   }
-  .login-container {
-    background-color: #0d1117;
-    padding: 1.5rem;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* New dedicated div for background animations */
-  .login-background-animations {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
+
+  .login-card { /* Make login-card transparent and remove shadow on mobile */
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
     width: 100%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 1; /* BACKGROUND is on layer 1 */
   }
 
-  /* Animated background lines attached to the new div */
-  .login-background-animations::before, .login-background-animations::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    min-width: 300vw;
-    min-height: 300vw;
-    background-color: #6a11cb;
-    animation: rotate 20s linear infinite;
-  }
-  .login-background-animations::before {
-    bottom: 15vh;
-    border-radius: 45%;
-  }
-  .login-background-animations::after {
-    bottom: 12vh;
-    opacity: .5;
-    border-radius: 47%;
-  }
-
-  /* --- COMPONENTS (NO CARD) --- */
-  .mobile-logo-container {
-    text-align: center;
-    margin-bottom: 3rem;
-    animation: slide-down 0.7s 0.2s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  }
-  .mobile-logo {
-    width: 90px;
-    filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
-  }
-  .mobile-company-name {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.8);
-    margin-top: 0.75rem;
-    letter-spacing: 1px;
-  }
-
-  .mobile-form {
-    animation: slide-up 0.7s 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  }
-
-  /* FORM ELEMENTS */
-  .mobile-form-group {
-    margin-bottom: 1.5rem;
-  }
-  .mobile-form-group label {
-    display: block;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 0.5rem;
-  }
-  .input-wrapper {
-    position: relative;
-  }
-  .input-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #8b949e;
-    transition: color 0.3s;
-  }
-  .mobile-form-control {
+  .login-panel.left { /* Make left panel transparent on mobile */
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
     width: 100%;
-    background-color: #0d1117;
-    border: 1px solid #30363d;
-    color: white;
-    padding: 13px 15px 13px 45px;
-    font-size: 1rem;
-    border-radius: 8px;
-    transition: all 0.3s;
-  }
-  .mobile-form-control:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 15px rgba(0, 184, 212, 0.3);
-  }
-  .mobile-form-control:focus + .input-icon {
-    color: var(--accent-blue);
-  }
-
-  /* DYNAMIC GRADIENT BUTTON */
-  .mobile-login-btn {
-    width: 100%;
-    padding: 1rem;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 8px;
-    color: white;
-    background-size: 200% auto;
-    background-image: linear-gradient(90deg, #6a11cb 0%, #2575fc 50%, #6a11cb 100%);
-    border: none;
-    cursor: pointer;
-    margin-top: 1rem;
-    transition: background-position 0.5s cubic-bezier(.25,.8,.25,1);
-  }
-  .mobile-login-btn:hover {
-    background-position: right center; /* Change the gradient's direction */
-  }
-
-  /* --- ANIMATIONS --- */
-  @keyframes rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  @keyframes slide-down {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes slide-up {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
   }
 }
 
-/* Styles for desktop devices */
+/* Styles for desktop devices (override mobile where necessary) */
 @media (min-width: 769px) {
   .login-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background-color: #f0f2f5;
+    background: linear-gradient(
+      135deg,
+      var(--bg-dark-1) 0%,
+      var(--bg-dark-2) 100%
+    ); /* Gradasi background */
+    padding: 20px;
   }
 
   .login-card {
+    background-color: var(--bg-dark-2); /* Background kartu utama */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Sedikit bayangan */
     display: flex;
-    width: 100%;
-    max-width: 900px; /* Adjust as needed */
-    margin: 2rem;
-    border-radius: 1rem;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  }
-
-  .login-panel {
-    padding: 3rem;
+    width: 900px; /* Lebar total kartu */
+    max-width: 95%; /* Responsive */
+    min-height: 500px; /* Tinggi minimum */
+    overflow: hidden; /* Penting untuk radius */
   }
 
   .login-panel.left {
     flex-basis: 50%;
-    background-color: white;
+    background-color: var(--bg-dark-3); /* Correct dark background */
     display: flex;
     flex-direction: column;
     justify-content: center;
-  }
-  
-  .desktop-login-wrapper {
-    width: 100%;
-    max-width: 350px;
-    margin: 0 auto;
-  }
-  
-  .login-logo {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  
-  .login-logo img {
-    max-width: 150px;
-  }
-  
-  .company-name-desktop {
-    color: rgba(255, 255, 255, 0.8); /* Dark text for the white background */
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-top: 1rem; /* Space from the logo */
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
   }
 
-  .login-panel.right {
+  .login-panel.right,
+  .login-panel-desktop {
     flex-basis: 50%;
-    background-color: #0d1117; /* Dark background from mobile */
-    color: white;
-    display: flex;
+    background: linear-gradient(
+      135deg,
+      var(--gradient-start),
+      var(--gradient-end)
+    ); /* Gradasi keren */
+    color: white; /* Teks putih di panel kanan */
+    text-align: center;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    display: flex; /* Ensure it's displayed as flex */
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    padding: 3rem;
-  }
-  
-  .password-toggle-icon {
-    position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #6c757d;
-  }
-  
-  /* Ensure form floating labels are visible on the white background */
-  .form-floating > .form-control {
-    background-color: #fff;
-    color: #212529;
-  }
-  
-  .form-floating > label {
-    color: #6c757d;
-  }
-  
-  .btn-accent {
-      background-color: #00b8d4;
-      border-color: #00b8d4;
-  }
-  
-  .btn-accent:hover {
-      background-color: #008f9e;
-      border-color: #008f9e;
-  }
-
-  /* Desktop Login Button Gradient Styles */
-  .desktop-login-btn-gradient {
-    width: 100%;
-    padding: 1rem;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 8px;
-    color: white;
-    background-size: 200% auto;
-    background-image: linear-gradient(90deg, #6a11cb 0%, #2575fc 50%, #6a11cb 100%);
-    border: none; /* Override default bootstrap button border */
-    cursor: pointer;
-    margin-top: 1rem; /* Adjust if needed */
-    transition: background-position 0.5s cubic-bezier(.25,.8,.25,1);
-    height: 45px; /* Maintain original height */
-    
-    /* Override any conflicting btn-accent styles */
-    background-color: transparent !important;
-    border-color: transparent !important;
-  }
-  
-  .desktop-login-btn-gradient:hover {
-    background-position: right center;
   }
 }

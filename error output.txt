@@ -1,46 +1,23 @@
-index-DQhcPZv2.js:245 Uncaught ReferenceError: useState is not defined
-    at O2 (index-DQhcPZv2.js:245:51858)
-    at Iu (index-DQhcPZv2.js:48:48100)
-    at vc (index-DQhcPZv2.js:48:70901)
-    at Vh (index-DQhcPZv2.js:48:81233)
-    at Sm (index-DQhcPZv2.js:48:117003)
-    at A0 (index-DQhcPZv2.js:48:116049)
-    at qc (index-DQhcPZv2.js:48:115881)
-    at pm (index-DQhcPZv2.js:48:112674)
-    at zm (index-DQhcPZv2.js:48:124474)
-    at MessagePort.xe (index-DQhcPZv2.js:25:1602)
-O2	@	index-DQhcPZv2.js:245
-Iu	@	index-DQhcPZv2.js:48
-vc	@	index-DQhcPZv2.js:48
-Vh	@	index-DQhcPZv2.js:48
-Sm	@	index-DQhcPZv2.js:48
-A0	@	index-DQhcPZv2.js:48
-qc	@	index-DQhcPZv2.js:48
-pm	@	index-DQhcPZv2.js:48
-zm	@	index-DQhcPZv2.js:48
-xe	@	index-DQhcPZv2.js:25
+index-B0NIPGNh.js:245 Uncaught ReferenceError: useAuth is not defined
+    at O2 (index-B0NIPGNh.js:245:51976)
+    at Iu (index-B0NIPGNh.js:48:48100)
+    at vc (index-B0NIPGNh.js:48:70901)
+    at Vh (index-B0NIPGNh.js:48:81233)
+    at Sm (index-B0NIPGNh.js:48:117003)
+    at A0 (index-B0NIPGNh.js:48:116049)
+    at qc (index-B0NIPGNh.js:48:115881)
+    at pm (index-B0NIPGNh.js:48:112674)
+    at zm (index-B0NIPGNh.js:48:124474)
+    at MessagePort.xe (index-B0NIPGNh.js:25:1602)
+O2 @ index-B0NIPGNh.js:245
+Iu @ index-B0NIPGNh.js:48
+vc @ index-B0NIPGNh.js:48
+Vh @ index-B0NIPGNh.js:48
+Sm @ index-B0NIPGNh.js:48
+A0 @ index-B0NIPGNh.js:48
+qc @ index-B0NIPGNh.js:48
+pm @ index-B0NIPGNh.js:48
+zm @ index-B0NIPGNh.js:48
+xe @ index-B0NIPGNh.js:25
 
-favicon.ico:1 
- GET https://inventory-app.natte.site/favicon.ico 404 (Not Found)
-index-DQhcPZv2.js:245 Uncaught ReferenceError: useState is not defined
-    at O2 (index-DQhcPZv2.js:245:51858)
-    at Iu (index-DQhcPZv2.js:48:48100)
-    at vc (index-DQhcPZv2.js:48:70901)
-    at Vh (index-DQhcPZv2.js:48:81233)
-    at Sm (index-DQhcPZv2.js:48:117003)
-    at A0 (index-DQhcPZv2.js:48:116049)
-    at qc (index-DQhcPZv2.js:48:115881)
-    at pm (index-DQhcPZv2.js:48:112674)
-    at zm (index-DQhcPZv2.js:48:124474)
-    at MessagePort.xe (index-DQhcPZv2.js:25:1602)
-O2	@	index-DQhcPZv2.js:245
-Iu	@	index-DQhcPZv2.js:48
-vc	@	index-DQhcPZv2.js:48
-Vh	@	index-DQhcPZv2.js:48
-Sm	@	index-DQhcPZv2.js:48
-A0	@	index-DQhcPZv2.js:48
-qc	@	index-DQhcPZv2.js:48
-pm	@	index-DQhcPZv2.js:48
-zm	@	index-DQhcPZv2.js:48
-xe	@	index-DQhcPZv2.js:25
- 
+index-B0NIPGNh.js:245 Uncaught ReferenceError: useAuth is not defined
