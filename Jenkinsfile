@@ -41,7 +41,7 @@ pipeline {
                         sh "sudo mv .env ${APP_PATH}/.env"
                     }
 
-                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml down --remove-orphans || true"
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml down --remove-orphans --volumes || true"
                     sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml up --build --force-recreate -d"
                 }
             }
