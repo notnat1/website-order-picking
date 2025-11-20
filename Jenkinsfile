@@ -41,10 +41,8 @@ pipeline {
                         sh "sudo mv .env ${APP_PATH}/.env"
                     }
 
-                    dir("${APP_PATH}") {
-                        sh "sudo docker-compose down --remove-orphans || true"
-                        sh "sudo docker-compose up --build --force-recreate -d"
-                    }
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml down --remove-orphans || true"
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml up --build --force-recreate -d"
                 }
             }
         }
@@ -52,9 +50,7 @@ pipeline {
         stage('Run Database Migrations (if applicable)') {
             steps {
                 script {
-                    dir("${APP_PATH}") {
-                        sh "sudo docker-compose exec backend npx prisma migrate deploy"
-                    }
+                    sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate deploy"
                 }
             }
         }
