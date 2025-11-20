@@ -9,8 +9,6 @@ services:
     restart: always
     ports:
       - "5001:5001" # Expose backend port to host
-    env_file:
-      - ./inventaris-backend/.env # Load backend-specific environment variables
     environment:
       # These variables can also be in .env. We explicitly set the DB host here.
       DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
