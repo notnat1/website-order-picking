@@ -11,6 +11,8 @@ const barangMasukRoutes = require('./src/routes/barangMasukRoutes');
 const orderRoutes = require('./src/routes/orderRoutes');
 const statsRoutes = require('./src/routes/statsRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+app.use('/api/auth', authRoutes);
+// const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 const PORT = 5001; // Backend kita akan jalan di port 5001
