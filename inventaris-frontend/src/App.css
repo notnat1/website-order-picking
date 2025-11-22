@@ -761,3 +761,106 @@ body {
     margin-bottom: 20px;
   }
 }
+
+/* ========================================= */
+/* ===== MOBILE ACTION BUTTONS FIX ========= */
+/* ========================================= */
+
+@media (max-width: 768px) {
+  /* Container untuk tombol aksi di card view */
+  .table-responsive-cards td[data-label="Aksi"] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border-top: 1px dashed var(--bg-dark-3);
+    margin-top: 5px;
+  }
+
+  /* Semua tombol di dalam cell Aksi jadi full width */
+  .table-responsive-cards td[data-label="Aksi"] .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    margin: 0 !important; /* Reset margin dari me-2 */
+  }
+
+  /* Style khusus untuk tombol Edit */
+  .table-responsive-cards td[data-label="Aksi"] .btn-warning {
+    order: 1;
+  }
+
+  /* Style khusus untuk tombol Cetak/Info */
+  .table-responsive-cards td[data-label="Aksi"] .btn-info {
+    order: 2;
+  }
+
+  /* Style khusus untuk tombol Hapus/Danger - taruh paling bawah */
+  .table-responsive-cards td[data-label="Aksi"] .btn-danger {
+    order: 3;
+    margin-top: 5px !important;
+    background-color: transparent !important;
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+  }
+
+  .table-responsive-cards td[data-label="Aksi"] .btn-danger:hover,
+  .table-responsive-cards td[data-label="Aksi"] .btn-danger:active {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+
+  /* Tombol secondary/warning outline untuk Pulihkan */
+  .table-responsive-cards td[data-label="Aksi"] .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+  }
+
+  /* Badge di dalam Aksi cell */
+  .table-responsive-cards td[data-label="Aksi"] .badge {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Khusus untuk Histori Pesanan - tombol Cetak dan X side by side bisa juga */
+  /* Atau kita buat row untuk 2 tombol */
+  .action-buttons-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .action-buttons-row .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  /* Tombol X (archive) dibuat outline */
+  .action-buttons-row .btn-danger {
+    background-color: transparent !important;
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+  }
+
+  .action-buttons-row .btn-danger:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+}
+
+/* ========================================= */
+/* ===== DESKTOP - Keep buttons inline ===== */
+/* ========================================= */
+
+@media (min-width: 769px) {
+  .action-buttons-row {
+    display: flex;
+    gap: 8px;
+  }
+}

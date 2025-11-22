@@ -20,28 +20,17 @@ const SupplierPage = () => {
       setError(null);
     } catch (err) {
       setError('Terjadi kesalahan saat mengambil data supplier.');
-      console.error(err);
     } finally {
       if (loading) setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSuppliers();
-  }, []);
+  useEffect(() => { fetchSuppliers(); }, []);
 
   const handleCloseAddModal = () => setShowAddModal(false);
   const handleShowAddModal = () => setShowAddModal(true);
-
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-    setSelectedSupplier(null);
-  };
-
-  const handleShowEditModal = (supplier) => {
-    setSelectedSupplier(supplier);
-    setShowEditModal(true);
-  };
+  const handleCloseEditModal = () => { setShowEditModal(false); setSelectedSupplier(null); };
+  const handleShowEditModal = (supplier) => { setSelectedSupplier(supplier); setShowEditModal(true); };
 
   const handleSaveSupplier = async (newSupplier) => {
     const promise = axios.post('/suppliers', newSupplier);
@@ -86,11 +75,7 @@ const SupplierPage = () => {
   }
 
   if (error) {
-    return (
-      <div className="content-card">
-        <Alert variant="danger">{error}</Alert>
-      </div>
-    );
+    return <div className="content-card"><Alert variant="danger">{error}</Alert></div>;
   }
 
   return (
@@ -108,10 +93,8 @@ const SupplierPage = () => {
       {suppliers.length === 0 ? (
         <div className="text-center p-5 my-5 border-dashed">
           <h4 className="mb-3">Belum Ada Supplier</h4>
-          <p className="text-light-2 mb-4">Data supplier masih kosong. Silakan tambahkan supplier baru.</p>
-          <Button className="btn-accent" onClick={handleShowAddModal}>
-            + Tambah Supplier
-          </Button>
+          <p className="text-light-2 mb-4">Data supplier masih kosong.</p>
+          <Button className="btn-accent" onClick={handleShowAddModal}>+ Tambah Supplier</Button>
         </div>
       ) : (
         <Table responsive hover className="table-soft table-responsive-cards">
@@ -132,8 +115,14 @@ const SupplierPage = () => {
                 <td data-label="Alamat">{supplier.alamat}</td>
                 <td data-label="Telepon">{supplier.telepon}</td>
                 <td data-label="Aksi">
-                  <Button variant="warning" size="sm" className="me-2" onClick={() => handleShowEditModal(supplier)}>Edit</Button>
-                  <Button variant="danger" size="sm" onClick={() => handleDeleteSupplier(supplier.id)}>Hapus</Button>
+                  <div className="action-buttons-row">
+                    <Button variant="warning" size="sm" onClick={() => handleShowEditModal(supplier)}>
+                      ✏️ Edit
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => handleDeleteSupplier(supplier.id)}>
+                      🗑️ Hapus
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -141,19 +130,9 @@ const SupplierPage = () => {
         </Table>
       )}
 
-      <AddSupplierModal 
-        show={showAddModal}
-        handleClose={handleCloseAddModal}
-        handleSave={handleSaveSupplier}
-      />
-
+      <AddSupplierModal show={showAddModal} handleClose={handleCloseAddModal} handleSave={handleSaveSupplier} />
       {selectedSupplier && (
-        <EditSupplierModal
-          show={showEditModal}
-          handleClose={handleCloseEditModal}
-          handleUpdate={handleUpdateSupplier}
-          supplier={selectedSupplier}
-        />
+        <EditSupplierModal show={showEditModal} handleClose={handleCloseEditModal} handleUpdate={handleUpdateSupplier} supplier={selectedSupplier} />
       )}
     </div>
   );

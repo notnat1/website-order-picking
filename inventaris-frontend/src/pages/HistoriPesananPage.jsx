@@ -7,7 +7,7 @@ const HistoriPesananPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('active'); // 'active' atau 'archived'
+  const [viewMode, setViewMode] = useState('active');
 
   const fetchOrders = async (currentMode, isManualRefresh = false) => {
     if (!loading) setLoading(true);
@@ -16,13 +16,10 @@ const HistoriPesananPage = () => {
       const response = await axios.get('/orders', { params }); 
       setOrders(response.data);
       setError(null);
-      if (isManualRefresh) {
-        toast.success('Histori pesanan berhasil diperbarui!');
-      }
+      if (isManualRefresh) toast.success('Histori pesanan berhasil diperbarui!');
     } catch (err) {
       setError('Terjadi kesalahan saat mengambil histori pesanan.');
       toast.error('Gagal memuat histori pesanan.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -117,7 +114,7 @@ const HistoriPesananPage = () => {
         <div className="text-center p-5 my-5 border-dashed">
           <h4 className="mb-3">{viewMode === 'active' ? 'Tidak Ada Pesanan Aktif' : 'Arsip Kosong'}</h4>
           <p className="text-light-2 mb-4">
-            {viewMode === 'active' ? 'Semua pesanan sudah selesai atau diarsipkan.' : 'Tidak ada pesanan yang diarsipkan saat ini.'}
+            {viewMode === 'active' ? 'Semua pesanan sudah selesai atau diarsipkan.' : 'Tidak ada pesanan yang diarsipkan.'}
           </p>
         </div>
       ) : (
@@ -149,19 +146,21 @@ const HistoriPesananPage = () => {
                     <Badge bg="secondary">Menunggu diproses</Badge>
                   )}
                   {order.status === 'Picked' && (
-                    <>
-                      <Button variant="info" size="sm" className="me-2" onClick={() => handlePrint(order.id)}>
-                        Cetak
+                    <div className="action-buttons-row">
+                      <Button variant="info" size="sm" onClick={() => handlePrint(order.id)}>
+                        🖨️ Cetak Nota
                       </Button>
                       <Button variant="danger" size="sm" onClick={() => handleArchive(order.id)}>
-                        X
+                        🗑️ Arsipkan
                       </Button>
-                    </>
+                    </div>
                   )}
                   {order.status === 'Archived' && (
-                    <Button variant="warning" size="sm" onClick={() => handleUnarchive(order.id)}>
-                      Pulihkan
-                    </Button>
+                    <div className="action-buttons-row">
+                      <Button variant="warning" size="sm" onClick={() => handleUnarchive(order.id)}>
+                        ↩️ Pulihkan
+                      </Button>
+                    </div>
                   )}
                 </td>
               </tr>
