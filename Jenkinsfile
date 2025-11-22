@@ -47,27 +47,25 @@ pipeline {
             }
         }
 
-                stage('Run Database Migrations (if applicable)') {
+        stage('Run Database Migrations (if applicable)') {
+            script {
+                sh """
+                sudo docker-compose --project-directory ${APP_PATH} \
+                    -f ${APP_PATH}/docker-compose.yml \
+                    exec -T backend npx prisma migrate deploy
+                """
+            }
+        }
 
-                    steps {
-
-                        script {
-
-                            // Deploy the migrations. This will apply all pending migrations.
-
-                            sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma migrate deploy"
-
-                            
-
-                            // Run seed script to populate initial data, e.g., default admin user
-
-                            sh "sudo docker-compose --project-directory ${APP_PATH} -f ${APP_PATH}/docker-compose.yml exec backend npx prisma db seed"
-
-                        }
-
-                    }
-
-                }
+        stage('Seed Database') {
+            script {
+                sh """
+                sudo docker-compose --project-directory ${APP_PATH} \
+                    -f ${APP_PATH}/docker-compose.yml \
+                    exec -T backend npx prisma db seed
+                """
+            }
+        }
 
         stage('Nginx Reload (if used as reverse proxy)') {
             steps {
@@ -102,4 +100,3 @@ pipeline {
 
     }
 
-    
