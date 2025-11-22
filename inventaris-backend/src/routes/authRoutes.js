@@ -4,7 +4,6 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-// Pastikan "Satpam" diimpor dari lokasi yang benar
 const { protect, authorize } = require('../middleware/authMiddleware'); 
 const authRoutes = require('./src/routes/authRoutes');
 app.use('/api/auth', authRoutes);
