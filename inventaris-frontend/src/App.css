@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap");
 
 /* Global Setup */
 :root {
@@ -352,7 +352,8 @@ body {
   max-width: 95%; /* Responsive */
   min-height: 500px; /* Tinggi minimum */
   overflow: hidden; /* Penting untuk radius */
-  animation: login-card-appear 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+  animation: login-card-appear 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    backwards;
 }
 
 @keyframes login-card-appear {
@@ -384,7 +385,11 @@ body {
 
 .login-panel.right,
 .login-panel-desktop {
-  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)); /* Gradasi keren */
+  background: linear-gradient(
+    135deg,
+    var(--gradient-start),
+    var(--gradient-end)
+  ); /* Gradasi keren */
   color: white; /* Teks putih di panel kanan */
   text-align: center;
   border-top-right-radius: 15px;
@@ -550,7 +555,7 @@ body {
   .sidebar-close-btn {
     display: inline-flex; /* Use inline-flex to show them */
   }
-  
+
   .main-header {
     padding: 0 20px; /* Adjust padding for mobile */
     justify-content: flex-start;
@@ -565,16 +570,16 @@ body {
     margin-left: 10px;
     font-size: 1.25rem;
   }
-  
+
   .page-content {
     padding: 24px;
   }
 
   .app-wrapper.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
   }
-  
+
   /* Hide toggle button when sidebar is open to fix z-index issue */
   .app-wrapper.sidebar-open .sidebar-toggle-btn {
     opacity: 0;
@@ -609,22 +614,22 @@ body {
     position: absolute;
     width: 1px;
   }
-  
+
   .table-responsive-cards tr {
     display: block;
     border: 1px solid var(--bg-dark-3);
     border-radius: 8px;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
-  
+
   .table-responsive-cards td {
     display: block;
     text-align: right;
     padding: 12px 16px;
     border-bottom: 1px solid var(--bg-dark-3);
   }
-  
+
   .table-responsive-cards td::before {
     content: attr(data-label);
     float: left;
@@ -633,11 +638,11 @@ body {
     text-transform: uppercase;
     font-size: 0.8rem;
   }
-  
+
   .table-responsive-cards td:last-child {
     border-bottom: 0;
   }
-  
+
   /* FIX: Target the Status cell specifically for better alignment */
   .table-responsive-cards td[data-label="Status Akun"] {
     display: flex;
@@ -650,5 +655,109 @@ body {
   }
   .table-responsive-cards td[data-label="Aksi"]::before {
     display: none;
+  }
+}
+
+/* ========================================= */
+/* ===== MOBILE FIXES FOR PICKING PAGES ==== */
+/* ========================================= */
+
+@media (max-width: 768px) {
+  /* Fix Section Header untuk mobile */
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .section-header .btn-accent {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Fix Section Title agar tidak terlalu besar */
+  .section-title {
+    font-size: 1.4rem;
+    word-break: break-word;
+  }
+
+  .section-subtitle {
+    font-size: 0.9rem;
+  }
+
+  /* Fix Assignment Section di Detail Picking */
+  .assignment-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 15px;
+    background-color: var(--bg-dark-3);
+    border-radius: 8px;
+  }
+
+  .assignment-section .row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .assignment-section .col,
+  .assignment-section .col-xs-auto,
+  .assignment-section [class^="col-"] {
+    width: 100%;
+    padding: 0;
+  }
+
+  .assignment-section .form-select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .assignment-section button {
+    width: 100%;
+  }
+
+  /* Fix tombol Selesai Picking */
+  .picking-header-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .picking-header-actions .btn {
+    width: 100%;
+  }
+
+  /* Perbaiki padding content card di mobile */
+  .content-card {
+    padding: 20px 15px;
+  }
+
+  /* Fix sub-card padding */
+  .sub-card {
+    padding: 15px;
+  }
+
+  /* Fix ButtonGroup di Histori Pesanan */
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    border-radius: 8px !important;
+    margin-bottom: 5px;
+  }
+
+  /* Fix Row di BuatPesanan dan ManajemenUser */
+  .content-card > .row {
+    flex-direction: column;
+  }
+
+  .content-card > .row > [class^="col-"] {
+    width: 100%;
+    margin-bottom: 20px;
   }
 }
