@@ -1,5 +1,31 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# Dependencies
+node_modules/
+*/node_modules/
 
-/generated/prisma
+# Build outputs
+dist/
+build/
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ignore only specific backend artifacts, NOT the entire folder
+inventaris-backend/node_modules/
+inventaris-backend/dist/
+inventaris-backend/.env
+inventaris-backend/.env.local
+
+# Allow migrations and source code to be tracked
+!inventaris-backend/prisma/migrations/
+!inventaris-backend/src/
+!inventaris-backend/package.json
+!inventaris-backend/
+
+# Allow frontend
+!inventaris-frontend/
